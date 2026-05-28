@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>陪你玩｜PYW NIGHTLIFE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+scroll-behavior:smooth;
+}
+
+body{
+font-family:'Noto Sans TC',sans-serif;
+background:#050505;
+color:white;
+overflow-x:hidden;
+}
+
+body::before{
+content:'';
+position:fixed;
+width:100%;
+height:100%;
+background:
+linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.85)),
+url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1974&auto=format&fit=crop');
+background-size:cover;
+background-position:center;
+z-index:-2;
+}
+
+body::after{
+content:'';
+position:fixed;
+width:100%;
+height:100%;
+background:
+radial-gradient(circle at top left,#ff4fa355,transparent 30%),
+radial-gradient(circle at bottom right,#ff4fa322,transparent 30%);
+z-index:-1;
+}
+
+header{
+position:fixed;
+top:0;
+width:100%;
+padding:20px 70px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+backdrop-filter:blur(18px);
+background:rgba(0,0,0,.45);
+border-bottom:1px solid rgba(255,255,255,.08);
+z-index:999;
+}
+
+.logo{
+display:flex;
+align-items:center;
+gap:16px;
+}
+
+.logo-box{
+width:58px;
+height:58px;
+border-radius:18px;
+background:linear-gradient(135deg,#ff4fa3,#ff82c5);
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:900;
+font-size:28px;
+box-shadow:0 0 25px #ff4fa388;
+}
+
+.logo-text h1{
+font-size:36px;
+font-weight:900;
+}
+
+.logo-text span{
+color:#ccc;
+letter-spacing:4px;
+font-size:13px;
+}
+
+nav{
+display:flex;
+gap:36px;
+align-items:center;
+}
+
+nav a{
+color:white;
+text-decoration:none;
+font-weight:600;
+transition:.3s;
+}
+
+nav a:hover{
+color:#ff69b8;
+}
+
+.join-btn{
+padding:14px 34px;
+border-radius:16px;
+background:#ff69b8;
+color:white;
+font-weight:700;
+text-decoration:none;
+box-shadow:0 0 25px #ff69b855;
+}
+
+.hero{
+min-height:100vh;
+padding:180px 70px 100px;
+display:grid;
+grid-template-columns:1fr 500px;
+gap:60px;
+align-items:center;
+}
+
+.live-bar{
+display:inline-flex;
+align-items:center;
+gap:12px;
+padding:16px 24px;
+border-radius:999px;
+background:rgba(255,255,255,.08);
+backdrop-filter:blur(20px);
+margin-bottom:28px;
+border:1px solid rgba(255,255,255,.1);
+}
+
+.live-dot{
+width:12px;
+height:12px;
+background:#47ff92;
+border-radius:50%;
+box-shadow:0 0 12px #47ff92;
+}
+
+.hero h2{
+font-size:64px;
+line-height:1.05;
+font-weight:900;
+margin-bottom:24px;
+}
+
+.hero p{
+font-size:24px;
+line-height:1.8;
+color:#ddd;
+max-width:760px;
+}
+
+.hero-buttons{
+display:flex;
+gap:20px;
+margin-top:40px;
+}
+
+.btn-main{
+padding:18px 36px;
+background:#ff69b8;
+border-radius:18px;
+font-weight:700;
+text-decoration:none;
+color:white;
+font-size:18px;
+box-shadow:0 0 30px #ff69b866;
+}
+
+.btn-second{
+padding:18px 36px;
+border-radius:18px;
+border:1px solid rgba(255,255,255,.15);
+text-decoration:none;
+color:white;
+font-size:18px;
+backdrop-filter:blur(10px);
+}
+
+.players{
+display:flex;
+flex-direction:column;
+gap:24px;
+}
+
+.player-card{
+background:rgba(255,255,255,.08);
+border:1px solid rgba(255,255,255,.1);
+border-radius:28px;
+padding:28px;
+backdrop-filter:blur(22px);
+box-shadow:0 0 30px rgba(0,0,0,.4);
+}
+
+.player-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:18px;
+}
+
+.avatar{
+display:flex;
+align-items:center;
+gap:16px;
+}
+
+.avatar-circle{
+width:58px;
+height:58px;
+border-radius:50%;
+background:#ff69b8;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:900;
+font-size:24px;
+}
+
+.online{
+color:#47ff92;
+font-size:14px;
+}
+
+.tag{
+padding:8px 16px;
+background:#ff69b822;
+border-radius:999px;
+font-size:14px;
+color:#ff9ad0;
+}
+
+.player-card button{
+margin-top:22px;
+width:100%;
+padding:18px;
+border:none;
+border-radius:16px;
+background:#ff69b8;
+color:white;
+font-size:18px;
+font-weight:700;
+cursor:pointer;
+}
+
+section{
+padding:120px 70px;
+}
+
+.section-title{
+font-size:48px;
+margin-bottom:20px;
+font-weight:900;
+}
+
+.section-sub{
+color:#ccc;
+font-size:20px;
+margin-bottom:50px;
+}
+
+.map-box{
+height:600px;
+border-radius:30px;
+overflow:hidden;
+position:relative;
+background:url('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1974&auto=format&fit=crop');
+background-size:cover;
+background-position:center;
+border:1px solid rgba(255,255,255,.1);
+}
+
+.map-user{
+position:absolute;
+background:rgba(0,0,0,.8);
+padding:20px;
+border-radius:24px;
+backdrop-filter:blur(20px);
+}
+
+.map-user h3{
+margin-bottom:8px;
+}
+
+.chat-area{
+display:grid;
+grid-template-columns:350px 1fr;
+gap:30px;
+margin-top:40px;
+}
+
+.chat-list{
+background:rgba(255,255,255,.07);
+border-radius:28px;
+padding:20px;
+}
+
+.chat-user{
+padding:18px;
+border-radius:20px;
+margin-bottom:14px;
+background:rgba(255,255,255,.05);
+}
+
+.chat-window{
+background:rgba(255,255,255,.07);
+border-radius:28px;
+padding:30px;
+display:flex;
+flex-direction:column;
+gap:20px;
+}
+
+.message{
+max-width:70%;
+padding:18px 22px;
+border-radius:22px;
+line-height:1.7;
+}
+
+.left{
+background:rgba(255,255,255,.08);
+}
+
+.right{
+background:#ff69b8;
+align-self:flex-end;
+}
+
+.security-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:24px;
+margin-top:50px;
+}
+
+.security-card{
+padding:34px;
+background:rgba(255,255,255,.07);
+border-radius:26px;
+border:1px solid rgba(255,255,255,.08);
+}
+
+.security-card h3{
+margin:20px 0;
+font-size:24px;
+}
+
+footer{
+padding:60px;
+text-align:center;
+color:#aaa;
+border-top:1px solid rgba(255,255,255,.08);
+margin-top:80px;
+}
+
+@media(max-width:1100px){
+
+.hero{
+grid-template-columns:1fr;
+}
+
+.chat-area{
+grid-template-columns:1fr;
+}
+
+header{
+padding:20px;
+}
+
+section{
+padding:100px 20px;
+}
+
+.hero{
+padding:160px 20px 100px;
+}
+
+.hero h2{
+font-size:48px;
+}
+
+nav{
+display:none;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">
+
+<div class="logo-box">
+P
+</div>
+
+<div class="logo-text">
+<h1>陪你玩</h1>
+<span>PYW NIGHTLIFE</span>
+</div>
+
+</div>
+
+<nav>
+<a href="#players">在線玩家</a>
+<a href="#map">附近地圖</a>
+<a href="#chat">聊天室</a>
+<a href="#security">安全機制</a>
+<a href="#join" class="join-btn">立即加入</a>
+</nav>
+
+</header>
+
+<section class="hero" id="join">
+
+<div>
+
+<div class="live-bar">
+<div class="live-dot"></div>
+今晚 42 位在線 ・ 平均回覆 3 分鐘 ・ 信義區 8 位在線
+</div>
+
+<h2>
+今晚，<br>
+不再一個人喝酒
+</h2>
+
+<p>
+即時找到一起玩的同伴。<br><br>
+
+無論是酒吧聊天、KTV歡唱，
+還是下班後想找人放鬆一下，
+陪你玩都能幫你快速找到適合的夜生活玩伴。
+</p>
+
+<div class="hero-buttons">
+
+<a href="#players" class="btn-main">
+今晚找人一起玩
+</a>
+
+<a href="#chat" class="btn-second">
+查看聊天室
+</a>
+
+</div>
+
+</div>
+
+<div class="players">
+
+<div class="player-card">
+
+<div class="player-top">
+
+<div class="avatar">
+
+<div class="avatar-circle">A</div>
+
+<div>
+<h3>Amy</h3>
+<div class="online">🟢 在線中</div>
+</div>
+
+</div>
+
+<div class="tag">
+酒吧聊天
+</div>
+
+</div>
+
+<p>
+信義區 ・ 30分鐘可到
+</p>
+
+<button>
+一起玩
+</button>
+
+</div>
+
+<div class="player-card">
+
+<div class="player-top">
+
+<div class="avatar">
+
+<div class="avatar-circle">K</div>
+
+<div>
+<h3>Kiki</h3>
+<div class="online">🟢 在線中</div>
+</div>
+
+</div>
+
+<div class="tag">
+KTV伴唱
+</div>
+
+</div>
+
+<p>
+西門 ・ 今晚可約
+</p>
+
+<button>
+一起玩
+</button>
+
+</div>
+
+<div class="player-card">
+
+<div class="player-top">
+
+<div class="avatar">
+
+<div class="avatar-circle">M</div>
+
+<div>
+<h3>Mina</h3>
+<div class="online">🟢 在線中</div>
+</div>
+
+</div>
+
+<div class="tag">
+聊天陪伴
+</div>
+
+</div>
+
+<p>
+板橋 ・ 15分鐘可到
+</p>
+
+<button>
+一起玩
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="map">
+
+<h2 class="section-title">
+附近在線玩家
+</h2>
+
+<p class="section-sub">
+即時查看附近誰在線，今晚有人正在等你一起玩。
+</p>
+
+<div class="map-box">
+
+<div class="map-user" style="top:20%;left:20%;">
+<h3>Amy</h3>
+<p>信義區 ・ 酒吧聊天</p>
+</div>
+
+<div class="map-user" style="top:50%;left:50%;">
+<h3>Kiki</h3>
+<p>西門 ・ KTV伴唱</p>
+</div>
+
+<div class="map-user" style="top:35%;right:10%;">
+<h3>Mina</h3>
+<p>板橋 ・ 聊天陪伴</p>
+</div>
+
+</div>
+
+</section>
+
+<section id="chat">
+
+<h2 class="section-title">
+即時聊天室
+</h2>
+
+<p class="section-sub">
+開始聊天，找到今晚最適合你的玩伴。
+</p>
+
+<div class="chat-area">
+
+<div class="chat-list">
+
+<div class="chat-user">
+<h3>Amy</h3>
+<p>今晚想去信義區小酌 🍷</p>
+</div>
+
+<div class="chat-user">
+<h3>Kiki</h3>
+<p>有人要一起唱歌嗎 🎤</p>
+</div>
+
+<div class="chat-user">
+<h3>Mina</h3>
+<p>下班想找人聊天放鬆 ✨</p>
+</div>
+
+</div>
+
+<div class="chat-window">
+
+<div class="message left">
+今晚有人想一起去酒吧嗎？
+</div>
+
+<div class="message right">
+我在信義區，可以一起喝 🍸
+</div>
+
+<div class="message left">
+想找會聊天的人一起放鬆～
+</div>
+
+<div class="message right">
+我 20 分鐘可以到 😆
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="security">
+
+<h2 class="section-title">
+安全承諾
+</h2>
+
+<p class="section-sub">
+你的人身安全，是平台最高優先。
+</p>
+
+<div class="security-grid">
+
+<div class="security-card">
+<h3>實名驗證</h3>
+<p>
+身份證與人臉辨識雙重認證。
+</p>
+</div>
+
+<div class="security-card">
+<h3>雙向評價</h3>
+<p>
+聚會後互相評價，確保體驗品質。
+</p>
+</div>
+
+<div class="security-card">
+<h3>位置分享</h3>
+<p>
+可分享即時位置給信任聯絡人。
+</p>
+</div>
+
+<div class="security-card">
+<h3>緊急回報</h3>
+<p>
+危險狀況可一鍵通知平台。
+</p>
+</div>
+
+</div>
+
+</section>
+
+<footer>
+
+<h2 style="margin-bottom:20px;">
+準備好開始今晚了嗎？
+</h2>
+
+<p style="margin-bottom:30px;">
+現在加入，立即找到一起玩的同伴。
+</p>
+
+<a href="#join" class="btn-main">
+立即加入 PYW
+</a>
+
+<div style="margin-top:50px;color:#777;">
+© 2026 PYW NIGHTLIFE
+</div>
+
+</footer>
+
+</body>
+</html>
