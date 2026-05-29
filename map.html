@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>附近玩伴｜陪你玩</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --pink:#ff4fa3;--pink2:#ff82c5;--pink-dim:rgba(255,79,163,.12);--pink-border:rgba(255,79,163,.3);
+  --green:#47ff92;--amber:#fbbf24;--blue:#60a5fa;
+  --bg:#07070f;--card:rgba(255,255,255,.07);--card2:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);
+  --text:#f0f0f0;--muted:#666;--muted2:#999;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;overflow:hidden}
+
+.app{display:flex;flex-direction:column;height:100vh}
+
+/* 頂部 */
+.topbar{
+  padding:12px 16px;display:flex;align-items:center;gap:10px;
+  background:rgba(7,7,15,.95);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);flex-shrink:0;z-index:1000;position:relative;
+}
+.back-btn{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;text-decoration:none;color:var(--text)}
+.topbar-info{flex:1}
+.topbar-info h1{font-size:17px;font-weight:900}
+.topbar-info p{font-size:11px;margin-top:1px}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);margin-right:4px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.view-toggle{display:flex;gap:4px}
+.vtbtn{
+  padding:7px 12px;border-radius:8px;border:1px solid var(--border);
+  background:transparent;color:var(--muted2);font-size:13px;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;transition:.15s;
+}
+.vtbtn.active{background:var(--pink-dim);border-color:var(--pink);color:#ff9ad0}
+
+/* 篩選列 */
+.filter-bar{
+  display:flex;gap:8px;overflow-x:auto;padding:10px 16px;
+  background:rgba(7,7,15,.9);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(10px);flex-shrink:0;z-index:999;position:relative;
+}
+.filter-bar::-webkit-scrollbar{display:none}
+.fchip{
+  white-space:nowrap;padding:6px 14px;border-radius:999px;
+  border:1px solid var(--border2);background:var(--card2);
+  font-size:12px;color:var(--muted2);cursor:pointer;transition:.15s;
+  font-family:'Noto Sans TC',sans-serif;flex-shrink:0;
+}
+.fchip.active{background:var(--pink-dim);border-color:var(--pink);color:#ff9ad0;font-weight:600}
+
+/* 主體 */
+.body{flex:1;position:relative;overflow:hidden}
+
+/* 地圖 */
+#map{
+  width:100%;height:100%;
+  background:#0d1117;
+}
+.leaflet-tile{filter:brightness(.55) saturate(.7) hue-rotate(180deg)}
+.leaflet-container{background:#0d1117}
+
+/* 自訂 Marker */
+.custom-marker{
+  width:44px;height:44px;border-radius:50%;
+  border:3px solid var(--pink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;
+  box-shadow:0 0 0 4px rgba(255,79,163,.2), 0 4px 12px rgba(0,0,0,.5);
+  cursor:pointer;transition:.2s;position:relative;
+  font-family:'Noto Sans TC',sans-serif;
+}
+.custom-marker.online::after{
+  content:'';position:absolute;bottom:0;right:0;
+  width:12px;height:12px;border-radius:50%;
+  background:var(--green);border:2px solid var(--bg);
+}
+.custom-marker.me{border-color:var(--blue);box-shadow:0 0 0 4px rgba(96,165,250,.25),0 4px 12px rgba(0,0,0,.5)}
+.custom-marker:hover{transform:scale(1.1)}
+
+/* 地圖控制 */
+.map-controls{
+  position:absolute;right:12px;top:12px;
+  display:flex;flex-direction:column;gap:8px;z-index:500;
+}
+.map-btn{
+  width:40px;height:40px;border-radius:12px;
+  background:rgba(10,10,20,.9);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;cursor:pointer;backdrop-filter:blur(10px);
+  transition:.15s;
+}
+.map-btn:active{background:var(--pink-dim)}
+
+/* 在線人數浮層 */
+.online-overlay{
+  position:absolute;left:12px;top:12px;z-index:500;
+  background:rgba(10,10,20,.9);border:1px solid rgba(71,255,146,.2);
+  border-radius:14px;padding:10px 14px;backdrop-filter:blur(10px);
+  font-size:13px;
+}
+.online-overlay strong{color:var(--green)}
+
+/* 底部卡片抽屜 */
+.drawer{
+  position:absolute;bottom:0;left:0;right:0;z-index:600;
+  transition:.35s cubic-bezier(.4,0,.2,1);
+}
+.drawer-handle{
+  height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.drawer-handle-bar{width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.2)}
+.drawer-content{
+  background:rgba(10,10,20,.97);
+  border-top:1px solid var(--border);
+  border-radius:20px 20px 0 0;
+  padding:0 0 90px;
+  max-height:65vh;overflow-y:auto;
+  backdrop-filter:blur(20px);
+}
+.drawer-content::-webkit-scrollbar{display:none}
+.drawer-header{
+  padding:14px 16px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:rgba(10,10,20,.97);z-index:1;
+  border-bottom:1px solid var(--border);
+}
+.drawer-title{font-size:15px;font-weight:700}
+.drawer-count{font-size:13px;color:var(--muted2)}
+.sort-chip{
+  padding:5px 10px;border-radius:999px;border:1px solid var(--border);
+  background:transparent;font-size:12px;color:var(--muted2);cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;
+}
+
+/* 玩伴列表卡 */
+.companion-list{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.comp-card{
+  display:flex;align-items:center;gap:12px;padding:12px;
+  border-radius:16px;background:var(--card2);border:1px solid var(--border);
+  cursor:pointer;transition:.15s;
+}
+.comp-card:active{background:var(--pink-dim);border-color:var(--pink)}
+.comp-card.selected{background:var(--pink-dim);border-color:var(--pink)}
+.comp-av{
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;position:relative;
+}
+.comp-av.online::after{
+  content:'';position:absolute;bottom:1px;right:1px;
+  width:12px;height:12px;border-radius:50%;
+  background:var(--green);border:2px solid var(--bg);
+}
+.comp-info{flex:1;min-width:0}
+.comp-name{font-size:15px;font-weight:700}
+.comp-meta{font-size:12px;color:var(--muted2);margin-top:2px;display:flex;align-items:center;gap:6px}
+.comp-dist{color:var(--green);font-weight:600}
+.comp-tags{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.ctag{padding:3px 8px;border-radius:999px;font-size:11px;font-weight:600}
+.ctag-pink{background:var(--pink-dim);color:#ff9ad0;border:1px solid var(--pink-border)}
+.ctag-green{background:rgba(71,255,146,.08);color:var(--green);border:1px solid rgba(71,255,146,.2)}
+.comp-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.comp-price{font-size:14px;font-weight:800}
+.comp-rating{font-size:12px;color:var(--amber)}
+.book-btn{
+  padding:8px 14px;border-radius:10px;background:var(--pink);border:none;
+  color:white;font-size:12px;font-weight:700;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;transition:.15s;
+  box-shadow:0 0 8px rgba(255,79,163,.3);
+}
+.book-btn:active{opacity:.85}
+
+/* 玩伴詳情彈窗 */
+.detail-modal{
+  position:absolute;bottom:0;left:0;right:0;z-index:700;
+  background:rgba(10,10,20,.98);border-top:1px solid var(--border);
+  border-radius:24px 24px 0 0;padding:0 0 100px;
+  transform:translateY(100%);transition:.35s cubic-bezier(.4,0,.2,1);
+  backdrop-filter:blur(20px);
+}
+.detail-modal.open{transform:translateY(0)}
+.detail-modal-handle{height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.modal-close{position:absolute;top:16px;right:16px;font-size:22px;cursor:pointer;color:var(--muted2)}
+.modal-body{padding:0 16px 20px}
+.modal-av-row{display:flex;align-items:center;gap:14px;padding:16px 0 14px}
+.modal-av{
+  width:70px;height:70px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:700;flex-shrink:0;position:relative;
+}
+.modal-av.online::after{content:'';position:absolute;bottom:3px;right:3px;width:14px;height:14px;border-radius:50%;background:var(--green);border:2.5px solid #0a0a14}
+.modal-name{font-size:22px;font-weight:900}
+.modal-sub{font-size:13px;color:var(--muted2);margin-top:3px}
+.modal-rating{color:var(--amber);font-size:14px;margin-top:4px}
+.modal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.mstat{background:var(--card2);border-radius:12px;padding:10px;text-align:center}
+.mstat-num{font-size:18px;font-weight:800}
+.mstat-lbl{font-size:11px;color:var(--muted2);margin-top:2px}
+.modal-section-title{font-size:13px;color:var(--muted2);margin-bottom:8px;letter-spacing:.5px}
+.modal-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.modal-bio{font-size:14px;color:#ccc;line-height:1.7;margin-bottom:14px;padding:12px;background:var(--card2);border-radius:12px}
+.modal-footer{
+  position:sticky;bottom:0;background:rgba(10,10,20,.98);
+  padding:12px 0 0;display:flex;gap:10px;
+}
+.modal-chat-btn{
+  flex:1;padding:14px;border-radius:14px;border:1px solid var(--border2);
+  background:transparent;color:var(--text);font-size:15px;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+}
+.modal-book-btn{
+  flex:2;padding:14px;border-radius:14px;border:none;
+  background:var(--pink);color:white;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+  box-shadow:0 0 16px rgba(255,79,163,.3);
+}
+
+/* 底部導航 */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(7,7,15,.96);border-top:1px solid var(--border);
+  backdrop-filter:blur(20px);display:flex;align-items:center;
+  padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:800;
+}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;color:var(--muted);font-size:10px;font-weight:500;transition:.15s}
+.nav-item.active{color:var(--pink)}
+.nav-icon{font-size:22px;line-height:1}
+
+/* Line & SOS FAB */
+.line-fab{position:fixed;bottom:80px;left:12px;width:46px;height:46px;border-radius:50%;background:#06C755;display:flex;align-items:center;justify-content:center;z-index:750;text-decoration:none;box-shadow:0 0 0 4px rgba(6,199,85,.12),0 0 14px rgba(6,199,85,.3);transition:.2s}
+.line-fab:active{transform:scale(.92)}
+.sos-fab{position:fixed;bottom:80px;right:12px;width:46px;height:46px;border-radius:50%;background:#ff3b3b;border:none;color:white;font-size:11px;font-weight:900;cursor:pointer;z-index:750;box-shadow:0 0 0 4px rgba(255,59,59,.12),0 0 14px rgba(255,59,59,.3);font-family:'Noto Sans TC',sans-serif;animation:sosP 2.5s infinite}
+@keyframes sosP{0%,100%{box-shadow:0 0 0 4px rgba(255,59,59,.12),0 0 14px rgba(255,59,59,.3)}50%{box-shadow:0 0 0 8px rgba(255,59,59,.05),0 0 18px rgba(255,59,59,.2)}}
+.sos-fab:active{transform:scale(.92)}
+
+/* Toast */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(15,15,30,.96);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:900;transition:.3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- 頂部 -->
+<div class="topbar">
+  <a class="back-btn" href="index.html">←</a>
+  <div class="topbar-info">
+    <h1>附近玩伴</h1>
+    <p><span class="live-dot"></span>信義區・<strong style="color:var(--green)">8 位</strong>在線</p>
+  </div>
+  <div class="view-toggle">
+    <button class="vtbtn active" id="map-btn" onclick="switchView('map')">🗺 地圖</button>
+    <button class="vtbtn" id="list-btn" onclick="switchView('list')">☰ 列表</button>
+  </div>
+</div>
+
+<!-- 篩選列 -->
+<div class="filter-bar">
+  <div class="fchip active" onclick="filterType(this,'全部')">全部</div>
+  <div class="fchip" onclick="filterType(this,'現在可到')">🟢 現在可到</div>
+  <div class="fchip" onclick="filterType(this,'酒吧聊天')">🍸 酒吧聊天</div>
+  <div class="fchip" onclick="filterType(this,'KTV伴唱')">🎤 KTV伴唱</div>
+  <div class="fchip" onclick="filterType(this,'聊天陪伴')">💬 聊天陪伴</div>
+  <div class="fchip" onclick="filterType(this,'商務陪同')">💼 商務陪同</div>
+  <div class="fchip" onclick="filterType(this,'評分 4.8+')">⭐ 評分 4.8+</div>
+  <div class="fchip" onclick="filterType(this,'$1,500以下')">💰 $1,500以下</div>
+</div>
+
+<!-- 主體 -->
+<div class="body">
+
+  <!-- 地圖 -->
+  <div id="map"></div>
+
+  <!-- 在線人數 -->
+  <div class="online-overlay">
+    <span class="live-dot"></span>附近 <strong>8 位</strong>在線・平均 <strong>3 分鐘</strong>回覆
+  </div>
+
+  <!-- 地圖控制按鈕 -->
+  <div class="map-controls">
+    <div class="map-btn" onclick="locateMe()" title="定位">📍</div>
+    <div class="map-btn" onclick="map.zoomIn()" title="放大">＋</div>
+    <div class="map-btn" onclick="map.zoomOut()" title="縮小">－</div>
+    <div class="map-btn" onclick="toggleDrawer()" title="列表">☰</div>
+  </div>
+
+  <!-- 底部抽屜 -->
+  <div class="drawer" id="drawer">
+    <div class="drawer-content">
+      <div class="drawer-handle" onclick="toggleDrawer()">
+        <div class="drawer-handle-bar"></div>
+      </div>
+      <div class="drawer-header">
+        <div>
+          <div class="drawer-title">附近玩伴</div>
+          <div class="drawer-count" id="drawer-count">共 8 位在線</div>
+        </div>
+        <select class="sort-chip" onchange="sortCompanions(this.value)">
+          <option value="dist">距離最近</option>
+          <option value="rating">評分最高</option>
+          <option value="price">價格最低</option>
+          <option value="response">回覆最快</option>
+        </select>
+      </div>
+      <div class="companion-list" id="companion-list"></div>
+    </div>
+  </div>
+
+</div><!-- /body -->
+
+<!-- 玩伴詳情彈窗 -->
+<div class="detail-modal" id="detail-modal">
+  <div class="detail-modal-handle" onclick="closeDetail()">
+    <div class="drawer-handle-bar"></div>
+  </div>
+  <div class="modal-close" onclick="closeDetail()">✕</div>
+  <div class="modal-body" id="modal-body"></div>
+</div>
+
+</div><!-- /app -->
+
+<!-- FABs -->
+<a class="line-fab" href="https://lin.ee/yuS2ZnE" target="_blank">
+  <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.630 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61V9.863h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.630 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.590.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+</a>
+<button class="sos-fab" onclick="window.location.href='sos.html'">SOS</button>
+
+<!-- 底部導航 -->
+<div class="bottom-nav">
+  <div class="nav-item" onclick="window.location.href='index.html'"><div class="nav-icon">🏠</div>首頁</div>
+  <div class="nav-item active"><div class="nav-icon">🗺</div>地圖</div>
+  <div class="nav-item" onclick="window.location.href='find.html'"><div class="nav-icon">🔍</div>搜尋</div>
+  <div class="nav-item" onclick="window.location.href='chat.html'"><div class="nav-icon">💬</div>訊息</div>
+  <div class="nav-item" onclick="window.location.href='app.html'"><div class="nav-icon">👤</div>我的</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ── 玩伴資料（台北座標）──
+const COMPANIONS = [
+  {id:1, name:'Amy', av:'A', color:'linear-gradient(135deg,#ff4fa3,#ff82c5)', lat:25.0408, lng:121.5648, area:'信義區', types:['酒吧聊天','KTV伴唱'], price:1200, rating:4.9, reviews:28, dist:'0.3km', response:'3分鐘', avail:'現在可到', online:true, bio:'喜歡聊天和音樂，保證讓你今晚不無聊！信義區附近隨時可出發。'},
+  {id:2, name:'Kiki', av:'K', color:'linear-gradient(135deg,#a78bfa,#c4b5fd)', lat:25.0440, lng:121.5100, area:'西門', types:['KTV伴唱','聊天陪伴'], price:1000, rating:4.8, reviews:19, dist:'1.2km', response:'5分鐘', avail:'今晚可約', online:true, bio:'KTV 達人！各類型歌曲都難不倒我，保證嗨翻天。'},
+  {id:3, name:'Mina', av:'M', color:'linear-gradient(135deg,#f59e0b,#fcd34d)', lat:25.0120, lng:121.4650, area:'板橋', types:['聊天陪伴'], price:900, rating:4.9, reviews:35, dist:'2.8km', response:'剛剛', avail:'現在可到', online:true, bio:'溫柔體貼，最擅長傾聽。下班後的放鬆好夥伴。'},
+  {id:4, name:'Joy', av:'J', color:'linear-gradient(135deg,#34d399,#6ee7b7)', lat:25.0478, lng:121.5466, area:'大安區', types:['活動陪同','商務陪同'], price:1800, rating:4.7, reviews:12, dist:'0.8km', response:'10分鐘', avail:'今晚可約', online:true, bio:'商務場合出色，懂禮儀、有氣質。適合各類正式場合。'},
+  {id:5, name:'Sara', av:'S', color:'linear-gradient(135deg,#f87171,#fca5a5)', lat:25.0525, lng:121.5229, area:'中山區', types:['商務陪同','酒吧聊天'], price:2000, rating:4.6, reviews:8, dist:'1.5km', response:'15分鐘', avail:'預約制', online:false, bio:'外語能力強（英日韓），適合國際商務場合。'},
+  {id:6, name:'Luna', av:'L', color:'linear-gradient(135deg,#60a5fa,#93c5fd)', lat:25.0498, lng:121.5774, area:'松山', types:['聊天陪伴','KTV伴唱'], price:950, rating:5.0, reviews:6, dist:'1.1km', response:'剛剛', avail:'現在可到', online:true, bio:'新加入！超開朗活潑，喜歡認識新朋友。'},
+  {id:7, name:'Mei', av:'M', color:'linear-gradient(135deg,#f472b6,#f9a8d4)', lat:25.0589, lng:121.5153, area:'內湖', types:['酒吧聊天','聊天陪伴'], price:1100, rating:4.8, reviews:22, dist:'3.2km', response:'8分鐘', avail:'今晚可約', online:true, bio:'話題豐富，從電影到旅遊什麼都聊，保證不冷場。'},
+  {id:8, name:'Yuki', av:'Y', color:'linear-gradient(135deg,#818cf8,#a5b4fc)', lat:25.1367, lng:121.5008, area:'北投', types:['KTV伴唱','活動陪同'], price:1300, rating:4.7, reviews:15, dist:'5.6km', response:'12分鐘', avail:'今晚可約', online:false, bio:'熱愛音樂，各類型活動都能配合，是你今晚的最佳夥伴。'},
+];
+
+let map, currentFilter='全部', selectedId=null, drawerOpen=true;
+let markers={}, filtered=[...COMPANIONS];
+
+// ── 初始化地圖 ──
+function initMap(){
+  map = L.map('map',{
+    center:[25.0408, 121.5648],
+    zoom:14,
+    zoomControl:false,
+    attributionControl:false,
+  });
+
+  // 深色地圖底圖
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:18,
+  }).addTo(map);
+
+  // 自己的位置
+  const meIcon = L.divIcon({
+    html:`<div class="custom-marker me" style="background:rgba(96,165,250,.2)">👤</div>`,
+    className:'',iconSize:[44,44],iconAnchor:[22,22],
+  });
+  L.marker([25.0408,121.5648],{icon:meIcon})
+    .addTo(map)
+    .bindPopup('<b>📍 你在這裡</b><br>信義區');
+
+  // 玩伴 markers
+  COMPANIONS.forEach(c => addMarker(c));
+
+  // 點空白關閉詳情
+  map.on('click', closeDetail);
+}
+
+function addMarker(c){
+  const icon = L.divIcon({
+    html:`<div class="custom-marker ${c.online?'online':''}" style="background:${c.color}">${c.av}</div>`,
+    className:'',iconSize:[44,44],iconAnchor:[22,22],
+  });
+  const m = L.marker([c.lat,c.lng],{icon}).addTo(map);
+  m.on('click',()=>showDetail(c.id));
+  markers[c.id] = m;
+}
+
+// ── 定位 ──
+function locateMe(){
+  map.flyTo([25.0408,121.5648],15,{duration:1.2});
+  showToast('📍 已定位到你的位置');
+}
+
+// ── 抽屜開關 ──
+function toggleDrawer(){
+  drawerOpen=!drawerOpen;
+  const d=document.getElementById('drawer');
+  d.style.transform = drawerOpen ? 'translateY(0)' : 'translateY(calc(100% - 28px))';
+}
+
+// ── 篩選 ──
+function filterType(el,type){
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter=type;
+
+  filtered=COMPANIONS.filter(c=>{
+    if(type==='全部') return true;
+    if(type==='現在可到') return c.avail==='現在可到';
+    if(type==='評分 4.8+') return c.rating>=4.8;
+    if(type==='$1,500以下') return c.price<=1500;
+    return c.types.includes(type);
+  });
+
+  // 更新 marker 顯示
+  Object.values(markers).forEach(m=>m.remove());
+  Object.keys(markers).forEach(k=>delete markers[k]);
+  filtered.forEach(c=>addMarker(c));
+
+  renderList(filtered);
+  document.getElementById('drawer-count').textContent=`共 ${filtered.length} 位${type==='全部'?'在線':'符合'}`;
+  showToast(`篩選：${type}（${filtered.length} 位）`);
+}
+
+// ── 排序 ──
+function sortCompanions(by){
+  const sorted=[...filtered].sort((a,b)=>{
+    if(by==='rating') return b.rating-a.rating;
+    if(by==='price') return a.price-b.price;
+    if(by==='response') return a.response.localeCompare(b.response);
+    return parseFloat(a.dist)-parseFloat(b.dist);
+  });
+  renderList(sorted);
+}
+
+// ── 渲染列表 ──
+function renderList(data){
+  document.getElementById('companion-list').innerHTML=data.map(c=>`
+    <div class="comp-card ${selectedId===c.id?'selected':''}" onclick="showDetail(${c.id})">
+      <div class="comp-av ${c.online?'online':''}" style="background:${c.color}">${c.av}</div>
+      <div class="comp-info">
+        <div class="comp-name">${c.name}</div>
+        <div class="comp-meta">
+          <span class="comp-dist">📍 ${c.dist}</span>・${c.area}・回覆 ${c.response}
+        </div>
+        <div class="comp-tags">
+          ${c.types.map(t=>`<span class="ctag ctag-pink">${t}</span>`).join('')}
+          <span class="ctag ctag-green">${c.avail}</span>
+        </div>
+      </div>
+      <div class="comp-right">
+        <div class="comp-price">$${c.price}<span style="font-size:10px;font-weight:400;color:var(--muted2)">/hr</span></div>
+        <div class="comp-rating">★ ${c.rating}</div>
+        <button class="book-btn" onclick="event.stopPropagation();bookNow('${c.name}')">預約</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── 顯示詳情 ──
+function showDetail(id){
+  const c=COMPANIONS.find(x=>x.id===id);
+  if(!c) return;
+  selectedId=id;
+  renderList(filtered);
+
+  // 地圖飛到該位置
+  map.flyTo([c.lat, c.lng-0.005],15,{duration:.8});
+
+  document.getElementById('modal-body').innerHTML=`
+    <div class="modal-av-row">
+      <div class="modal-av ${c.online?'online':''}" style="background:${c.color}">${c.av}</div>
+      <div>
+        <div class="modal-name">${c.name}</div>
+        <div class="modal-sub">📍 ${c.area} ・ ${c.dist} ・ ${c.online?'<span style="color:var(--green)">在線中</span>':'<span style="color:var(--muted2)">離線</span>'}</div>
+        <div class="modal-rating">★★★★★ ${c.rating} (${c.reviews} 則評價)</div>
+      </div>
+    </div>
+    <div class="modal-stats">
+      <div class="mstat"><div class="mstat-num">$${c.price}</div><div class="mstat-lbl">元／hr</div></div>
+      <div class="mstat"><div class="mstat-num">${c.reviews}</div><div class="mstat-lbl">評價數</div></div>
+      <div class="mstat"><div class="mstat-num">${c.response}</div><div class="mstat-lbl">回覆時間</div></div>
+    </div>
+    <div class="modal-section-title">服務類型</div>
+    <div class="modal-tags">
+      ${c.types.map(t=>`<span class="ctag ctag-pink" style="padding:6px 14px;font-size:13px">${t}</span>`).join('')}
+      <span class="ctag ctag-green" style="padding:6px 14px;font-size:13px">${c.avail}</span>
+    </div>
+    <div class="modal-section-title">自我介紹</div>
+    <div class="modal-bio">${c.bio}</div>
+    <div class="modal-footer">
+      <button class="modal-chat-btn" onclick="window.location.href='chat.html'">💬 發訊息</button>
+      <button class="modal-book-btn" onclick="bookNow('${c.name}')">立即預約</button>
+    </div>
+  `;
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function closeDetail(){
+  document.getElementById('detail-modal').classList.remove('open');
+  selectedId=null;
+  renderList(filtered);
+}
+
+// ── 切換地圖/列表視圖 ──
+function switchView(v){
+  document.getElementById('map-btn').classList.toggle('active',v==='map');
+  document.getElementById('list-btn').classList.toggle('active',v==='list');
+  if(v==='list'){
+    window.location.href='find.html';
+  }
+}
+
+function bookNow(name){
+  showToast(`💬 正在開啟與 ${name} 的預約…`);
+  setTimeout(()=>window.location.href='chat.html',1000);
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// 啟動
+initMap();
+renderList(COMPANIONS);
+</script>
+</body>
+</html>

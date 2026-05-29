@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>後台管理｜陪你玩 PYW</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#ff4fa3;--pink2:#ff82c5;--pink-dim:rgba(255,79,163,.1);--pink-border:rgba(255,79,163,.25);
+  --green:#10b981;--green-dim:rgba(16,185,129,.1);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,.1);
+  --red:#ef4444;--red-dim:rgba(239,68,68,.1);
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,.1);
+  --bg:#0d0d14;--sidebar:#0a0a11;--card:#161622;--card2:#1c1c2a;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --text:#e8e8f0;--muted:#6b6b80;--muted2:#9898a8;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;overflow:hidden}
+
+/* ── 版面 ── */
+.layout{display:flex;height:100vh}
+
+/* ── 側欄 ── */
+.sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow:hidden;transition:.3s;
+}
+.sidebar.collapsed{width:64px}
+.sb-header{
+  padding:20px 16px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.sb-logo{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--pink),var(--pink2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:16px;box-shadow:0 0 12px rgba(255,79,163,.3);
+}
+.sb-title{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden}
+.sb-sub{font-size:10px;color:var(--muted2);margin-top:1px;white-space:nowrap;overflow:hidden}
+.collapse-btn{
+  margin-left:auto;width:28px;height:28px;border-radius:8px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;flex-shrink:0;transition:.2s;
+}
+.collapse-btn:hover{background:rgba(255,255,255,.1)}
+
+.sb-nav{flex:1;overflow-y:auto;padding:12px 8px}
+.sb-nav::-webkit-scrollbar{width:3px}
+.sb-nav::-webkit-scrollbar-thumb{background:var(--border)}
+.sb-section{font-size:10px;color:var(--muted);letter-spacing:1px;padding:8px 10px 4px;white-space:nowrap;overflow:hidden}
+.sidebar.collapsed .sb-section{visibility:hidden}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 10px;border-radius:10px;cursor:pointer;
+  transition:.15s;margin-bottom:2px;position:relative;
+  white-space:nowrap;
+}
+.nav-item:hover{background:rgba(255,255,255,.05)}
+.nav-item.active{background:var(--pink-dim);color:var(--pink)}
+.nav-item.active .nav-icon{color:var(--pink)}
+.nav-icon{font-size:18px;flex-shrink:0;width:20px;text-align:center}
+.nav-label{font-size:14px;font-weight:500;overflow:hidden}
+.sidebar.collapsed .nav-label{display:none}
+.nav-badge{
+  margin-left:auto;background:var(--red);color:white;
+  font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;
+  flex-shrink:0;
+}
+.sidebar.collapsed .nav-badge{position:absolute;top:6px;right:6px;padding:2px 4px}
+
+.sb-footer{
+  padding:12px 8px;border-top:1px solid var(--border);flex-shrink:0;
+}
+.admin-row{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;
+  border-radius:10px;cursor:pointer;transition:.15s;
+}
+.admin-row:hover{background:rgba(255,255,255,.05)}
+.admin-av{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--pink),var(--pink2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+}
+.admin-info{overflow:hidden}
+.admin-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden}
+.admin-role{font-size:11px;color:var(--muted2);white-space:nowrap;overflow:hidden}
+.sidebar.collapsed .admin-info{display:none}
+
+/* ── 主內容 ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+.topnav{
+  padding:0 24px;height:60px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--sidebar);border-bottom:1px solid var(--border);
+}
+.page-title{font-size:18px;font-weight:800}
+.page-subtitle{font-size:12px;color:var(--muted2);margin-top:2px}
+.top-actions{display:flex;align-items:center;gap:10px}
+.top-btn{
+  padding:8px 16px;border-radius:10px;border:1px solid var(--border2);
+  background:rgba(255,255,255,.05);color:var(--text);
+  font-size:13px;font-weight:500;cursor:pointer;transition:.15s;
+  font-family:'Noto Sans TC',sans-serif;display:flex;align-items:center;gap:6px;
+}
+.top-btn:hover{background:rgba(255,255,255,.1)}
+.top-btn.primary{background:var(--pink);border-color:var(--pink);box-shadow:0 0 12px rgba(255,79,163,.25)}
+.top-btn.primary:hover{opacity:.9}
+.notif-btn{position:relative}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--sidebar)}
+
+.content{flex:1;overflow-y:auto;padding:24px}
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:999px}
+
+/* ── 統計卡 ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:20px;position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;inset:0;opacity:.04;border-radius:16px}
+.stat-icon{
+  width:42px;height:42px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  margin-bottom:14px;
+}
+.stat-num{font-size:28px;font-weight:900;line-height:1;margin-bottom:4px}
+.stat-label{font-size:13px;color:var(--muted2)}
+.stat-change{font-size:12px;margin-top:8px;display:flex;align-items:center;gap:4px}
+.up{color:var(--green)}.down{color:var(--red)}.flat{color:var(--muted2)}
+
+/* ── 圖表區 ── */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.chart-title{font-size:15px;font-weight:700}
+.chart-sub{font-size:12px;color:var(--muted2);margin-top:2px}
+.period-btns{display:flex;gap:4px}
+.period-btn{padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--muted2);font-family:'Noto Sans TC',sans-serif;transition:.15s}
+.period-btn.active{background:var(--card2);color:var(--text)}
+
+/* 長條圖 */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding-top:8px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:4px 4px 0 0;transition:.3s;cursor:pointer;position:relative}
+.bar:hover{opacity:.8}
+.bar-label{font-size:10px;color:var(--muted2);white-space:nowrap}
+.bar-val{font-size:10px;color:var(--muted2)}
+
+/* 圓餅圖 */
+.donut-wrap{display:flex;align-items:center;gap:20px}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-val{margin-left:auto;font-weight:700}
+
+/* ── 表格 ── */
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;overflow:hidden}
+.table-header{
+  padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.table-title{font-size:15px;font-weight:700}
+.search-input{
+  padding:7px 12px;border-radius:8px;border:1px solid var(--border2);
+  background:var(--card2);color:var(--text);font-size:13px;
+  font-family:'Noto Sans TC',sans-serif;width:200px;
+}
+.search-input:focus{outline:none;border-color:var(--pink)}
+.search-input::placeholder{color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+th{
+  padding:10px 20px;text-align:left;font-size:12px;color:var(--muted2);
+  font-weight:500;letter-spacing:.5px;border-bottom:1px solid var(--border);
+  background:var(--card2);white-space:nowrap;
+}
+td{padding:12px 20px;font-size:14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.avatar-sm{
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;flex-shrink:0;
+}
+.user-cell{display:flex;align-items:center;gap:10px}
+.user-name{font-size:14px;font-weight:600}
+.user-sub{font-size:12px;color:var(--muted2);margin-top:1px}
+
+/* 狀態 badge */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.badge-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(16,185,129,.2)}
+.badge-amber{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.badge-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.badge-blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+.badge-pink{background:var(--pink-dim);color:var(--pink);border:1px solid var(--pink-border)}
+.badge-gray{background:rgba(255,255,255,.05);color:var(--muted2);border:1px solid var(--border)}
+
+/* 操作按鈕 */
+.action-btn{
+  padding:5px 12px;border-radius:7px;border:1px solid var(--border2);
+  background:transparent;color:var(--text);font-size:12px;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;transition:.15s;margin-right:4px;
+}
+.action-btn:hover{background:rgba(255,255,255,.08)}
+.action-btn.danger{color:var(--red);border-color:rgba(239,68,68,.3)}
+.action-btn.danger:hover{background:var(--red-dim)}
+.action-btn.success{color:var(--green);border-color:rgba(16,185,129,.3)}
+.action-btn.success:hover{background:var(--green-dim)}
+
+/* 分頁 */
+.pagination{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 20px;border-top:1px solid var(--border);font-size:13px;color:var(--muted2);
+}
+.page-btns{display:flex;gap:4px}
+.page-num{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:13px;border:1px solid var(--border);
+  background:transparent;color:var(--muted2);transition:.15s;
+}
+.page-num:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.page-num.active{background:var(--pink);border-color:var(--pink);color:white}
+
+/* ── 警報列 ── */
+.alert-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.alert-item{
+  display:flex;align-items:center;gap:12px;padding:12px 16px;
+  border-radius:12px;font-size:13px;border:1px solid;
+}
+.alert-red{background:var(--red-dim);border-color:rgba(239,68,68,.2);color:#fca5a5}
+.alert-amber{background:var(--amber-dim);border-color:rgba(245,158,11,.2);color:#fcd34d}
+.alert-blue{background:var(--blue-dim);border-color:rgba(59,130,246,.2);color:#93c5fd}
+.alert-icon{font-size:18px;flex-shrink:0}
+.alert-close{margin-left:auto;cursor:pointer;opacity:.6;font-size:16px}
+
+/* ── 右側面板 ── */
+.side-panel{
+  width:300px;flex-shrink:0;
+  border-left:1px solid var(--border);
+  background:var(--sidebar);
+  overflow-y:auto;padding:20px 16px;
+  display:flex;flex-direction:column;gap:16px;
+}
+.side-panel::-webkit-scrollbar{display:none}
+.panel-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.panel-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.panel-title span{font-size:12px;color:var(--pink);cursor:pointer;font-weight:500}
+.activity-item{display:flex;gap:10px;margin-bottom:10px;font-size:13px}
+.activity-item:last-child{margin-bottom:0}
+.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.act-time{font-size:11px;color:var(--muted2);margin-top:2px}
+.risk-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;
+}
+.risk-item:last-child{border-bottom:none}
+.risk-score{font-weight:700;font-size:14px}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);
+  background:#1a1a2e;border:1px solid var(--border2);color:var(--text);
+  padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;
+  z-index:999;transition:.3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;opacity:0;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* RWD */
+@media(max-width:1200px){
+  .side-panel{display:none}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  .sidebar{width:64px}
+  .sidebar .nav-label,.sidebar .sb-title,.sidebar .sb-sub,.sidebar .admin-info,.sidebar .sb-section{display:none}
+  .charts-row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- 側欄 -->
+<div class="sidebar" id="sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">P</div>
+    <div>
+      <div class="sb-title">陪你玩後台</div>
+      <div class="sb-sub">PYW Admin</div>
+    </div>
+    <div class="collapse-btn" onclick="toggleSidebar()">◀</div>
+  </div>
+
+  <div class="sb-nav">
+    <div class="sb-section">主要</div>
+    <div class="nav-item active" onclick="switchPage('dashboard',this)">
+      <span class="nav-icon">📊</span><span class="nav-label">儀表板</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('users',this)">
+      <span class="nav-icon">👥</span><span class="nav-label">用戶管理</span>
+      <span class="nav-badge">3</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('orders',this)">
+      <span class="nav-icon">📋</span><span class="nav-label">訂單管理</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('finance',this)">
+      <span class="nav-icon">💰</span><span class="nav-label">金流管理</span>
+    </div>
+
+    <div class="sb-section">安全</div>
+    <div class="nav-item" onclick="switchPage('verify',this)">
+      <span class="nav-icon">🔐</span><span class="nav-label">驗證審核</span>
+      <span class="nav-badge">5</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('risk',this)">
+      <span class="nav-icon">🤖</span><span class="nav-label">AI 風險</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('blacklist',this)">
+      <span class="nav-icon">🚫</span><span class="nav-label">黑名單</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('reports',this)">
+      <span class="nav-icon">⚠️</span><span class="nav-label">投訴舉報</span>
+      <span class="nav-badge">2</span>
+    </div>
+
+    <div class="sb-section">設定</div>
+    <div class="nav-item" onclick="switchPage('settings',this)">
+      <span class="nav-icon">⚙️</span><span class="nav-label">系統設定</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('logs',this)">
+      <span class="nav-icon">📝</span><span class="nav-label">操作日誌</span>
+    </div>
+  </div>
+
+  <div class="sb-footer">
+    <div class="admin-row">
+      <div class="admin-av">A</div>
+      <div class="admin-info">
+        <div class="admin-name">Admin</div>
+        <div class="admin-role">超級管理員</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 主內容 -->
+<div class="main">
+  <div class="topnav">
+    <div>
+      <div class="page-title" id="page-title">儀表板</div>
+      <div class="page-subtitle" id="page-subtitle">2026年5月29日 · 即時數據</div>
+    </div>
+    <div class="top-actions">
+      <button class="top-btn" onclick="exportData()">📤 匯出報表</button>
+      <button class="top-btn notif-btn" onclick="showToast('📬 3 則待處理通知')">
+        🔔<div class="notif-dot"></div>
+      </button>
+      <button class="top-btn primary" onclick="window.open('index.html','_blank')">🌐 前台</button>
+    </div>
+  </div>
+
+  <div class="content" id="main-content">
+
+    <!-- 警報 -->
+    <div class="alert-list" id="alerts">
+      <div class="alert-item alert-red">
+        <span class="alert-icon">🚨</span>
+        <span>用戶 #4821 觸發 AI 高風險警報，需立即審查</span>
+        <span class="alert-close" onclick="dismissAlert(this)">✕</span>
+      </div>
+      <div class="alert-item alert-amber">
+        <span class="alert-icon">⚠️</span>
+        <span>5 筆身份驗證等待審核，最長等待 18 小時</span>
+        <span class="alert-close" onclick="dismissAlert(this)">✕</span>
+      </div>
+      <div class="alert-item alert-blue">
+        <span class="alert-icon">💡</span>
+        <span>今日新增用戶 12 人，較昨日成長 40%</span>
+        <span class="alert-close" onclick="dismissAlert(this)">✕</span>
+      </div>
+    </div>
+
+    <!-- 統計卡 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--pink-dim)">👥</div>
+        <div class="stat-num">1,284</div>
+        <div class="stat-label">總用戶數</div>
+        <div class="stat-change up">↑ 12% 較上週</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--green-dim)">💰</div>
+        <div class="stat-num">$284,600</div>
+        <div class="stat-label">本月 GMV</div>
+        <div class="stat-change up">↑ 28% 較上月</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--blue-dim)">📋</div>
+        <div class="stat-num">342</div>
+        <div class="stat-label">本月訂單</div>
+        <div class="stat-change up">↑ 18% 較上月</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--amber-dim)">⭐</div>
+        <div class="stat-num">4.87</div>
+        <div class="stat-label">平均評分</div>
+        <div class="stat-change flat">→ 持平</div>
+      </div>
+    </div>
+
+    <!-- 圖表 -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">每日訂單量</div>
+            <div class="chart-sub">過去 7 天</div>
+          </div>
+          <div class="period-btns">
+            <div class="period-btn active">週</div>
+            <div class="period-btn" onclick="switchPeriod(this)">月</div>
+            <div class="period-btn" onclick="switchPeriod(this)">季</div>
+          </div>
+        </div>
+        <div class="bar-chart" id="bar-chart"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">服務類型分佈</div>
+            <div class="chart-sub">本月佔比</div>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <svg width="110" height="110" viewBox="0 0 110 110">
+            <circle cx="55" cy="55" r="40" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="18"/>
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#ff4fa3" stroke-width="18" stroke-dasharray="100.5 150.8" stroke-dashoffset="0" transform="rotate(-90 55 55)"/>
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#3b82f6" stroke-width="18" stroke-dasharray="62.8 150.8" stroke-dashoffset="-100.5" transform="rotate(-90 55 55)"/>
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#10b981" stroke-width="18" stroke-dasharray="40.8 150.8" stroke-dashoffset="-163.3" transform="rotate(-90 55 55)"/>
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#f59e0b" stroke-width="18" stroke-dasharray="47 150.8" stroke-dashoffset="-204.2" transform="rotate(-90 55 55)"/>
+            <text x="55" y="52" text-anchor="middle" fill="#e8e8f0" font-size="11" font-weight="700" font-family="Noto Sans TC">本月</text>
+            <text x="55" y="64" text-anchor="middle" fill="#9898a8" font-size="9" font-family="Noto Sans TC">342筆</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#ff4fa3"></span>酒吧聊天<span class="legend-val">40%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span>KTV伴唱<span class="legend-val">25%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#10b981"></span>聊天陪伴<span class="legend-val">16%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>其他<span class="legend-val">19%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 用戶表格 -->
+    <div class="table-card">
+      <div class="table-header">
+        <div class="chart-title">最新用戶</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="search-input" placeholder="🔍 搜尋用戶…" oninput="filterTable(this.value)">
+          <button class="top-btn" onclick="switchPage('users',null)">查看全部</button>
+        </div>
+      </div>
+      <table id="user-table">
+        <thead>
+          <tr>
+            <th>用戶</th><th>身份</th><th>驗證</th><th>評分</th><th>訂單</th><th>加入日期</th><th>狀態</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="user-tbody"></tbody>
+      </table>
+      <div class="pagination">
+        <span>顯示 1–8 / 共 1,284 筆</span>
+        <div class="page-btns">
+          <div class="page-num">‹</div>
+          <div class="page-num active">1</div>
+          <div class="page-num" onclick="showToast('切換到第 2 頁')">2</div>
+          <div class="page-num" onclick="showToast('切換到第 3 頁')">3</div>
+          <div class="page-num">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 訂單表格 -->
+    <div class="table-card">
+      <div class="table-header">
+        <div class="chart-title">最新訂單</div>
+        <button class="top-btn" onclick="switchPage('orders',null)">查看全部</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>訂單編號</th><th>陪玩</th><th>客人</th><th>服務</th><th>金額</th><th>狀態</th><th>時間</th><th>操作</th></tr>
+        </thead>
+        <tbody id="order-tbody"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- 右側面板 -->
+<div class="side-panel">
+  <div class="panel-section">
+    <div class="panel-title">即時動態 <span onclick="showToast('已刷新')">刷新</span></div>
+    <div class="activity-item">
+      <div class="act-dot" style="background:var(--green)"></div>
+      <div><div>Amy 完成訂單 #0042</div><div class="act-time">2 分鐘前</div></div>
+    </div>
+    <div class="activity-item">
+      <div class="act-dot" style="background:var(--blue)"></div>
+      <div><div>新用戶 Kevin 完成註冊</div><div class="act-time">5 分鐘前</div></div>
+    </div>
+    <div class="activity-item">
+      <div class="act-dot" style="background:var(--amber)"></div>
+      <div><div>訂單 #0041 爭議申請</div><div class="act-time">12 分鐘前</div></div>
+    </div>
+    <div class="activity-item">
+      <div class="act-dot" style="background:var(--red)"></div>
+      <div><div>用戶 #4821 被舉報</div><div class="act-time">18 分鐘前</div></div>
+    </div>
+    <div class="activity-item">
+      <div class="act-dot" style="background:var(--green)"></div>
+      <div><div>Kiki 身份驗證通過</div><div class="act-time">25 分鐘前</div></div>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-title">AI 風險警報 <span onclick="switchPage('risk',null)">查看全部</span></div>
+    <div class="risk-item">
+      <div><div style="font-size:14px;font-weight:600">用戶 #4821</div><div style="font-size:12px;color:var(--muted2)">多次投訴・異常行為</div></div>
+      <div class="risk-score" style="color:var(--red)">92分</div>
+    </div>
+    <div class="risk-item">
+      <div><div style="font-size:14px;font-weight:600">用戶 #3309</div><div style="font-size:12px;color:var(--muted2)">頻繁取消訂單</div></div>
+      <div class="risk-score" style="color:var(--amber)">67分</div>
+    </div>
+    <div class="risk-item">
+      <div><div style="font-size:14px;font-weight:600">用戶 #2891</div><div style="font-size:12px;color:var(--muted2)">可疑付款行為</div></div>
+      <div class="risk-score" style="color:var(--amber)">54分</div>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-title">今日數據快覽</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted2)">新增用戶</span><span style="font-weight:700;color:var(--green)">+12</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted2)">今日訂單</span><span style="font-weight:700">18</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted2)">今日 GMV</span><span style="font-weight:700;color:var(--green)">$28,400</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted2)">平台抽成</span><span style="font-weight:700;color:var(--pink)">$2,840</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted2)">待審核</span><span style="font-weight:700;color:var(--amber)">5 件</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted2)">現在在線</span><span style="font-weight:700;color:var(--green)">42 人</span></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /layout -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 資料 ──
+const USERS = [
+  {id:1, name:'Amy', role:'陪玩', verified:true, rating:4.9, orders:28, date:'05/01', status:'active', av:'av1'},
+  {id:2, name:'Kiki', role:'陪玩', verified:true, rating:4.8, orders:19, date:'05/03', status:'active', av:'av2'},
+  {id:3, name:'Chris', role:'客人', verified:true, rating:4.7, orders:5, date:'05/10', status:'active', av:'av3'},
+  {id:4, name:'Jason', role:'客人', verified:false, rating:0, orders:2, date:'05/15', status:'pending', av:'av4'},
+  {id:5, name:'Mina', role:'陪玩', verified:true, rating:4.9, orders:35, date:'04/20', status:'active', av:'av1'},
+  {id:6, name:'用戶#4821', role:'客人', verified:true, rating:2.1, orders:8, date:'05/18', status:'suspended', av:'av5'},
+  {id:7, name:'Joy', role:'陪玩', verified:false, rating:0, orders:0, date:'05/22', status:'review', av:'av2'},
+  {id:8, name:'Kevin', role:'客人', verified:true, rating:4.5, orders:3, date:'05/28', status:'active', av:'av3'},
+];
+
+const ORDERS = [
+  {id:'#0042', companion:'Amy', client:'Chris', service:'酒吧聊天', amount:'$3,240', status:'done', time:'今天 21:00'},
+  {id:'#0041', companion:'Kiki', client:'Jason', service:'KTV伴唱', amount:'$2,160', status:'dispute', time:'今天 19:30'},
+  {id:'#0040', companion:'Mina', client:'Kevin', service:'聊天陪伴', amount:'$1,800', status:'active', time:'今天 18:00'},
+  {id:'#0039', companion:'Amy', client:'用戶A', service:'商務陪同', amount:'$4,320', status:'done', time:'昨天'},
+  {id:'#0038', companion:'Joy', client:'用戶B', service:'活動陪同', amount:'$3,600', status:'cancel', time:'昨天'},
+];
+
+const avColors = {
+  av1:'linear-gradient(135deg,#ff4fa3,#ff82c5)',
+  av2:'linear-gradient(135deg,#a78bfa,#c4b5fd)',
+  av3:'linear-gradient(135deg,#34d399,#6ee7b7)',
+  av4:'linear-gradient(135deg,#f59e0b,#fcd34d)',
+  av5:'linear-gradient(135deg,#f87171,#fca5a5)',
+};
+
+function renderUsers(data){
+  const tbody = document.getElementById('user-tbody');
+  const statusMap = {active:['badge-green','● 正常'],pending:['badge-amber','◌ 待驗證'],suspended:['badge-red','✕ 停權'],review:['badge-blue','⏳ 審核中']};
+  tbody.innerHTML = data.map(u => `
+    <tr>
+      <td><div class="user-cell">
+        <div class="avatar-sm" style="background:${avColors[u.av]}">${u.name[0]}</div>
+        <div><div class="user-name">${u.name}</div><div class="user-sub">ID #${1000+u.id}</div></div>
+      </div></td>
+      <td><span class="badge ${u.role==='陪玩'?'badge-pink':'badge-blue'}">${u.role}</span></td>
+      <td>${u.verified?'<span class="badge badge-green">✓ 已驗證</span>':'<span class="badge badge-amber">待驗證</span>'}</td>
+      <td>${u.rating > 0 ? `<span style="color:#f59e0b;font-weight:700">★ ${u.rating}</span>` : '—'}</td>
+      <td>${u.orders}</td>
+      <td style="color:var(--muted2)">${u.date}</td>
+      <td><span class="badge ${statusMap[u.status][0]}">${statusMap[u.status][1]}</span></td>
+      <td>
+        <button class="action-btn" onclick="showToast('查看用戶 ${u.name}')">查看</button>
+        ${u.status==='pending'||u.status==='review'?`<button class="action-btn success" onclick="approveUser(${u.id})">審核</button>`:''}
+        ${u.status==='active'?`<button class="action-btn danger" onclick="suspendUser('${u.name}')">停權</button>`:''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderOrders(){
+  const statusMap = {done:['badge-green','✓ 已完成'],active:['badge-blue','● 進行中'],dispute:['badge-red','⚠ 爭議'],cancel:['badge-gray','✕ 已取消']};
+  document.getElementById('order-tbody').innerHTML = ORDERS.map(o => `
+    <tr>
+      <td style="font-family:monospace;color:var(--pink)">${o.id}</td>
+      <td>${o.companion}</td>
+      <td>${o.client}</td>
+      <td>${o.service}</td>
+      <td style="font-weight:700;color:var(--green)">${o.amount}</td>
+      <td><span class="badge ${statusMap[o.status][0]}">${statusMap[o.status][1]}</span></td>
+      <td style="color:var(--muted2)">${o.time}</td>
+      <td>
+        <button class="action-btn" onclick="showToast('查看訂單 ${o.id}')">查看</button>
+        ${o.status==='dispute'?`<button class="action-btn danger" onclick="showToast('處理爭議 ${o.id}')">處理</button>`:''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+// 長條圖
+function renderBarChart(){
+  const data = [
+    {label:'週一',val:28,color:'rgba(255,79,163,.6)'},
+    {label:'週二',val:35,color:'rgba(255,79,163,.6)'},
+    {label:'週三',val:22,color:'rgba(255,79,163,.6)'},
+    {label:'週四',val:48,color:'var(--pink)'},
+    {label:'週五',val:62,color:'var(--pink)'},
+    {label:'週六',val:71,color:'var(--pink)'},
+    {label:'週日',val:55,color:'rgba(255,79,163,.6)'},
+  ];
+  const max = Math.max(...data.map(d=>d.val));
+  document.getElementById('bar-chart').innerHTML = data.map(d => `
+    <div class="bar-wrap">
+      <div class="bar-val">${d.val}</div>
+      <div class="bar" style="height:${(d.val/max*90)}px;background:${d.color}" title="${d.label}: ${d.val}筆"></div>
+      <div class="bar-label">${d.label}</div>
+    </div>
+  `).join('');
+}
+
+// 側欄折疊
+let collapsed = false;
+function toggleSidebar(){
+  collapsed = !collapsed;
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('collapsed', collapsed);
+  document.querySelector('.collapse-btn').textContent = collapsed ? '▶' : '◀';
+}
+
+// 頁面切換
+const pageTitles = {
+  dashboard:['儀表板','即時數據概覽'],
+  users:['用戶管理','查看與管理所有用戶'],
+  orders:['訂單管理','查看與處理所有訂單'],
+  finance:['金流管理','收入、提領、抽成'],
+  verify:['驗證審核','待審核身份驗證'],
+  risk:['AI 風險監控','異常行為偵測'],
+  blacklist:['黑名單管理','封鎖與警告記錄'],
+  reports:['投訴舉報','用戶舉報處理'],
+  settings:['系統設定','平台參數設定'],
+  logs:['操作日誌','管理員操作記錄'],
+};
+function switchPage(page, el){
+  if(el){
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    el.classList.add('active');
+  }
+  const [title, sub] = pageTitles[page] || ['頁面',''];
+  document.getElementById('page-title').textContent = title;
+  document.getElementById('page-subtitle').textContent = sub;
+  showToast('切換到：'+title);
+}
+
+function filterTable(q){
+  const rows = document.querySelectorAll('#user-tbody tr');
+  rows.forEach(r=>{
+    r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function dismissAlert(el){
+  el.closest('.alert-item').style.display='none';
+}
+
+function approveUser(id){
+  showToast('✅ 用戶 #'+(1000+id)+' 審核通過');
+  renderUsers(USERS.map(u=>u.id===id?{...u,status:'active',verified:true}:u));
+}
+function suspendUser(name){
+  if(confirm('確定要停權用戶 '+name+' 嗎？')){
+    showToast('🚫 '+name+' 已停權');
+  }
+}
+
+function switchPeriod(el){
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  showToast('切換到：'+el.textContent+'報表');
+}
+
+function exportData(){
+  showToast('📤 報表匯出中，請稍候…');
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// 初始化
+renderUsers(USERS);
+renderOrders();
+renderBarChart();
+</script>
+</body>
+</html>
