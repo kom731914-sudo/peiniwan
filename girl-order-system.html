@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>接單系統｜陪你玩</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:#0b0b12;color:white;min-height:100vh;padding:20px 16px 40px}
+
+.header{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-top:8px}
+.header-icon{width:44px;height:44px;border-radius:14px;background:#ff4fa3;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px}
+.header h1{font-size:22px;font-weight:900}
+.header p{font-size:13px;color:#aaa;margin-top:2px}
+
+.card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:20px;margin-bottom:16px}
+.card-title{font-size:13px;color:#aaa;margin-bottom:14px;display:flex;align-items:center;gap:6px;letter-spacing:.5px}
+
+/* 接單開關 */
+.toggle-row{display:flex;align-items:center;justify-content:space-between}
+.toggle-info h3{font-size:18px;font-weight:700}
+.toggle-info p{font-size:13px;color:#aaa;margin-top:3px}
+.switch{position:relative;width:56px;height:30px}
+.switch input{opacity:0;width:0;height:0}
+.sw-slider{position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:999px;cursor:pointer;transition:.25s}
+.sw-slider:before{content:'';position:absolute;width:24px;height:24px;left:3px;top:3px;background:white;border-radius:50%;transition:.25s}
+input:checked+.sw-slider{background:#ff4fa3}
+input:checked+.sw-slider:before{transform:translateX(26px)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:500;margin-top:12px}
+.badge-on{background:rgba(255,79,163,.2);color:#ff9ad0}
+.badge-off{background:rgba(255,255,255,.08);color:#888}
+.dot{width:7px;height:7px;border-radius:50%}
+.dot-on{background:#ff4fa3;box-shadow:0 0 6px #ff4fa3}
+.dot-off{background:#555}
+.mini-stat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.stat-box{background:rgba(255,255,255,.05);border-radius:14px;padding:12px}
+.stat-num{font-size:18px;font-weight:700}
+.stat-lbl{font-size:12px;color:#aaa;margin-top:3px}
+
+/* 排班 */
+.day-row{display:flex;gap:6px;flex-wrap:wrap}
+.day-btn{flex:1;min-width:36px;height:38px;border:1px solid rgba(255,255,255,.12);border-radius:10px;cursor:pointer;font-size:13px;color:#aaa;background:transparent;transition:.2s;font-family:'Noto Sans TC',sans-serif}
+.day-btn.on{background:#ff4fa3;border-color:#ff4fa3;color:white;font-weight:700}
+.section-sub{font-size:13px;color:#aaa;margin:14px 0 8px}
+.time-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.time-slot{border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 12px;cursor:pointer;transition:.2s;text-align:center;font-size:13px;color:#ccc;background:transparent;font-family:'Noto Sans TC',sans-serif}
+.time-slot.active{border-color:#ff4fa3;background:rgba(255,79,163,.12);color:#ff9ad0;font-weight:500}
+
+/* 服務類型 */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.type-card{border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px;cursor:pointer;transition:.2s;background:transparent}
+.type-card.active{border-color:#ff4fa3;background:rgba(255,79,163,.1)}
+.type-name{font-size:14px;font-weight:500}
+.type-card.active .type-name{color:#ff9ad0}
+.type-price{font-size:12px;color:#888;margin-top:4px}
+
+/* 收費 */
+.fee-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.fee-row:last-of-type{border-bottom:none}
+.fee-label{font-size:15px}
+.fee-input-wrap{display:flex;align-items:center;gap:6px}
+.fee-input{width:90px;padding:8px 12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;font-size:15px;text-align:right;background:rgba(255,255,255,.06);color:white;font-family:'Noto Sans TC',sans-serif}
+.fee-input:focus{outline:none;border-color:#ff4fa3}
+.fee-unit{font-size:13px;color:#888}
+
+.earn-box{background:rgba(255,79,163,.08);border:1px solid rgba(255,79,163,.2);border-radius:16px;padding:16px;margin-top:14px}
+.earn-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.earn-top-label{font-size:13px;color:#aaa}
+.earn-big{font-size:30px;font-weight:900;color:#ff9ad0}
+.earn-lines{display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px}
+.earn-line{display:flex;justify-content:space-between;font-size:14px;color:#aaa}
+.earn-line span:last-child{color:white}
+.earn-line.cut span:last-child{color:#ff6fa8}
+.earn-line.total{font-weight:700;border-top:1px solid rgba(255,255,255,.1);padding-top:8px;margin-top:2px}
+.earn-line.total span{color:#ff9ad0;font-size:15px}
+
+/* 區域 */
+.area-tags{display:flex;gap:7px;flex-wrap:wrap}
+.area-tag{padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);font-size:13px;cursor:pointer;color:#aaa;background:transparent;transition:.2s;font-family:'Noto Sans TC',sans-serif}
+.area-tag.active{background:rgba(255,79,163,.15);border-color:#ff4fa3;color:#ff9ad0}
+
+/* 儲存 */
+.save-btn{width:100%;padding:16px;background:#ff4fa3;border:none;border-radius:18px;color:white;font-size:17px;font-weight:700;cursor:pointer;margin-top:4px;font-family:'Noto Sans TC',sans-serif;transition:.2s;box-shadow:0 0 24px rgba(255,79,163,.35)}
+.save-btn:active{transform:scale(0.98);opacity:.9}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">P</div>
+  <div>
+    <h1>接單系統</h1>
+    <p>排班・收費・區域設定</p>
+  </div>
+</div>
+
+<!-- 接單開關 -->
+<div class="card">
+  <div class="toggle-row">
+    <div class="toggle-info">
+      <h3>接單開關</h3>
+      <p id="status-text">目前狀態：離線中</p>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="main-toggle" onchange="updateStatus()">
+      <span class="sw-slider"></span>
+    </label>
+  </div>
+  <div>
+    <span class="badge badge-off" id="status-badge">
+      <span class="dot dot-off" id="status-dot"></span>
+      <span id="status-word">離線</span>
+    </span>
+  </div>
+  <div class="mini-stat">
+    <div class="stat-box">
+      <div class="stat-num">本月 12</div>
+      <div class="stat-lbl">已完成訂單</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">4.9 ★</div>
+      <div class="stat-lbl">平均評分</div>
+    </div>
+  </div>
+</div>
+
+<!-- 排班 -->
+<div class="card">
+  <div class="card-title">📅 排班設定</div>
+  <div class="section-sub" style="margin-top:0">可接單星期</div>
+  <div class="day-row" id="day-row"></div>
+  <div class="section-sub">可接時段</div>
+  <div class="time-grid" id="time-grid"></div>
+</div>
+
+<!-- 服務類型 -->
+<div class="card">
+  <div class="card-title">🏷 服務類型</div>
+  <div class="type-grid" id="type-grid"></div>
+</div>
+
+<!-- 收費設定 -->
+<div class="card">
+  <div class="card-title">💰 收費設定</div>
+  <div class="fee-row">
+    <span class="fee-label">基本時費</span>
+    <div class="fee-input-wrap">
+      <input class="fee-input" type="number" id="base-fee" value="1200" min="0" step="100" oninput="calcEarn()">
+      <span class="fee-unit">元／hr</span>
+    </div>
+  </div>
+  <div class="fee-row">
+    <span class="fee-label">最短時數</span>
+    <div class="fee-input-wrap">
+      <input class="fee-input" type="number" id="min-hour" value="2" min="1" max="12" step="1" oninput="calcEarn()">
+      <span class="fee-unit">小時</span>
+    </div>
+  </div>
+
+  <div class="earn-box">
+    <div class="earn-top">
+      <div class="earn-top-label">你實際拿到</div>
+      <div class="earn-big" id="earn-big">$2,160</div>
+    </div>
+    <div class="earn-lines">
+      <div class="earn-line">
+        <span>客人支付（<span id="show-hr">2</span> 小時）</span>
+        <span id="gross-num">$2,400</span>
+      </div>
+      <div class="earn-line cut">
+        <span>平台抽成 10%</span>
+        <span id="cut-num">－$240</span>
+      </div>
+      <div class="earn-line total">
+        <span>你入帳</span>
+        <span id="earn-net">$2,160</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 出沒區域 -->
+<div class="card">
+  <div class="card-title">📍 出沒區域</div>
+  <div class="area-tags" id="area-tags"></div>
+</div>
+
+<button class="save-btn" onclick="save()">儲存設定</button>
+
+<script>
+const days=['一','二','三','四','五','六','日'];
+const dayOn=[false,false,false,false,true,true,false];
+const slots=['白天 10–18 點','傍晚 18–21 點','夜間 21–00 點','深夜 00–04 點'];
+const slotOn=[false,true,true,false];
+const types=[
+  {name:'酒吧聊天',price:'基本費'},
+  {name:'KTV 伴唱',price:'基本費'},
+  {name:'商務陪同',price:'基本費 ×1.5'},
+  {name:'活動陪同',price:'依活動報價'},
+];
+const typeOn=[true,true,false,false];
+const areas=['信義區','中山區','西門','板橋','松山','內湖','大安區','北投'];
+const areaOn=[true,false,true,false,false,false,false,false];
+
+function buildDays(){
+  const row=document.getElementById('day-row');
+  days.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className='day-btn'+(dayOn[i]?' on':'');
+    b.textContent='週'+d;
+    b.onclick=()=>{dayOn[i]=!dayOn[i];b.className='day-btn'+(dayOn[i]?' on':'')};
+    row.appendChild(b);
+  });
+}
+function buildSlots(){
+  const g=document.getElementById('time-grid');
+  slots.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='time-slot'+(slotOn[i]?' active':'');
+    d.textContent=s;
+    d.onclick=()=>{slotOn[i]=!slotOn[i];d.className='time-slot'+(slotOn[i]?' active':'')};
+    g.appendChild(d);
+  });
+}
+function buildTypes(){
+  const g=document.getElementById('type-grid');
+  types.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='type-card'+(typeOn[i]?' active':'');
+    d.innerHTML=`<div class="type-name">${t.name}</div><div class="type-price">${t.price}</div>`;
+    d.onclick=()=>{typeOn[i]=!typeOn[i];d.className='type-card'+(typeOn[i]?' active':'')};
+    g.appendChild(d);
+  });
+}
+function buildAreas(){
+  const g=document.getElementById('area-tags');
+  areas.forEach((a,i)=>{
+    const span=document.createElement('span');
+    span.className='area-tag'+(areaOn[i]?' active':'');
+    span.textContent=a;
+    span.onclick=()=>{areaOn[i]=!areaOn[i];span.className='area-tag'+(areaOn[i]?' active':'')};
+    g.appendChild(span);
+  });
+}
+function updateStatus(){
+  const on=document.getElementById('main-toggle').checked;
+  document.getElementById('status-text').textContent=on?'目前狀態：接單中':'目前狀態：離線中';
+  document.getElementById('status-badge').className='badge '+(on?'badge-on':'badge-off');
+  document.getElementById('status-dot').className='dot '+(on?'dot-on':'dot-off');
+  document.getElementById('status-word').textContent=on?'接單中':'離線';
+}
+function calcEarn(){
+  const base=parseInt(document.getElementById('base-fee').value)||0;
+  const hr=parseInt(document.getElementById('min-hour').value)||1;
+  const gross=base*hr;
+  const cut=Math.round(gross*0.10);
+  const net=gross-cut;
+  document.getElementById('show-hr').textContent=hr;
+  document.getElementById('gross-num').textContent='$'+gross.toLocaleString();
+  document.getElementById('cut-num').textContent='－$'+cut.toLocaleString();
+  document.getElementById('earn-big').textContent='$'+net.toLocaleString();
+  document.getElementById('earn-net').textContent='$'+net.toLocaleString();
+}
+function save(){
+  const btn=document.querySelector('.save-btn');
+  btn.textContent='已儲存 ✓';
+  btn.style.background='#1D9E75';
+  btn.style.boxShadow='0 0 24px rgba(29,158,117,.35)';
+  setTimeout(()=>{btn.textContent='儲存設定';btn.style.background='#ff4fa3';btn.style.boxShadow='0 0 24px rgba(255,79,163,.35)';},2000);
+}
+buildDays();buildSlots();buildTypes();buildAreas();calcEarn();
+</script>
+</body>
+</html>
