@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4fa3">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>陪你玩｜即時找到一起玩的同伴</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:#050505;color:white;overflow-x:hidden}
+body::before{content:'';position:fixed;width:100%;height:100%;background:linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.85)),url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1974&auto=format&fit=crop');background-size:cover;background-position:center;z-index:-2}
+body::after{content:'';position:fixed;width:100%;height:100%;background:radial-gradient(circle at top left,#ff4fa355,transparent 30%),radial-gradient(circle at bottom right,#ff4fa322,transparent 30%);z-index:-1}
+
+/* Header */
+header{position:fixed;top:0;width:100%;padding:20px 70px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(18px);background:rgba(0,0,0,.45);border-bottom:1px solid rgba(255,255,255,.08);z-index:999}
+.logo{display:flex;align-items:center;gap:16px}
+.logo-box{width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#ff4fa3,#ff82c5);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px;box-shadow:0 0 25px #ff4fa388}
+.logo-text h1{font-size:36px;font-weight:900}
+.logo-text span{color:#ccc;letter-spacing:4px;font-size:13px}
+nav{display:flex;gap:36px;align-items:center}
+nav a{color:white;text-decoration:none;font-weight:600;transition:.3s}
+nav a:hover{color:#ff69b8}
+.join-btn{padding:14px 34px;border-radius:16px;background:#ff69b8;color:white;font-weight:700;text-decoration:none;box-shadow:0 0 25px #ff69b855}
+
+/* Hero */
+.hero{min-height:100vh;padding:180px 70px 100px;display:grid;grid-template-columns:1fr 500px;gap:60px;align-items:center}
+.live-bar{display:inline-flex;align-items:center;gap:12px;padding:16px 24px;border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(20px);margin-bottom:28px;border:1px solid rgba(255,255,255,.1)}
+.live-dot{width:12px;height:12px;background:#47ff92;border-radius:50%;box-shadow:0 0 12px #47ff92;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h2{font-size:64px;line-height:1.05;font-weight:900;margin-bottom:24px}
+.hero p{font-size:22px;line-height:1.8;color:#ddd;max-width:760px}
+.hero-buttons{display:flex;gap:20px;margin-top:40px;flex-wrap:wrap}
+.btn-main{padding:18px 36px;background:#ff69b8;border-radius:18px;font-weight:700;text-decoration:none;color:white;font-size:18px;box-shadow:0 0 30px #ff69b866;cursor:pointer;border:none;font-family:'Noto Sans TC',sans-serif;transition:.2s}
+.btn-main:active{transform:scale(.97)}
+.btn-second{padding:18px 36px;border-radius:18px;border:1px solid rgba(255,255,255,.15);text-decoration:none;color:white;font-size:18px;backdrop-filter:blur(10px);cursor:pointer;background:transparent;font-family:'Noto Sans TC',sans-serif;transition:.2s}
+.btn-second:hover{background:rgba(255,255,255,.08)}
+
+/* Players */
+.players{display:flex;flex-direction:column;gap:24px}
+.player-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:28px;padding:28px;backdrop-filter:blur(22px);box-shadow:0 0 30px rgba(0,0,0,.4)}
+.player-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.avatar{display:flex;align-items:center;gap:16px}
+.avatar-circle{width:58px;height:58px;border-radius:50%;background:#ff69b8;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px}
+.online{color:#47ff92;font-size:14px}
+.tag{padding:8px 16px;background:#ff69b822;border-radius:999px;font-size:14px;color:#ff9ad0}
+.player-card button{margin-top:22px;width:100%;padding:18px;border:none;border-radius:16px;background:#ff69b8;color:white;font-size:18px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:.2s}
+.player-card button:active{transform:scale(.98)}
+
+/* Sections */
+section{padding:120px 70px}
+.section-title{font-size:48px;margin-bottom:20px;font-weight:900}
+.section-sub{color:#ccc;font-size:20px;margin-bottom:50px}
+
+/* Security */
+.security-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:50px}
+.security-card{padding:34px;background:rgba(255,255,255,.07);border-radius:26px;border:1px solid rgba(255,255,255,.08)}
+.security-card h3{margin:20px 0;font-size:24px}
+
+/* CTA 加入 */
+.cta-section{padding:100px 70px;text-align:center}
+.cta-section h2{font-size:48px;font-weight:900;margin-bottom:20px}
+.cta-section p{font-size:20px;color:#ccc;margin-bottom:40px}
+.cta-buttons{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.btn-partner{padding:20px 48px;background:linear-gradient(135deg,#ff4fa3,#ff82c5);border-radius:20px;font-weight:900;text-decoration:none;color:white;font-size:20px;box-shadow:0 0 40px #ff4fa366;cursor:pointer;border:none;font-family:'Noto Sans TC',sans-serif;transition:.2s}
+.btn-partner:hover{transform:scale(1.03);box-shadow:0 0 50px #ff4fa388}
+.btn-client{padding:20px 48px;border-radius:20px;border:2px solid rgba(255,255,255,.2);text-decoration:none;color:white;font-size:20px;backdrop-filter:blur(10px);cursor:pointer;background:transparent;font-family:'Noto Sans TC',sans-serif;transition:.2s}
+.btn-client:hover{background:rgba(255,255,255,.08)}
+
+/* Footer */
+footer{padding:60px;text-align:center;color:#aaa;border-top:1px solid rgba(255,255,255,.08)}
+
+@media(max-width:1100px){
+  .hero{grid-template-columns:1fr;padding:160px 20px 100px}
+  .hero h2{font-size:44px}
+  section{padding:80px 20px}
+  .cta-section{padding:80px 20px}
+  header{padding:20px}
+  nav{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-box">P</div>
+    <div class="logo-text">
+      <h1>陪你玩</h1>
+      <span>PYW NIGHTLIFE</span>
+    </div>
+  </div>
+  <nav>
+    <a href="find.html">在線玩家</a>
+    <a href="#security">安全機制</a>
+    <a href="login.html">立即加入</a>
+    <a href="app.html" class="join-btn">進入 App</a>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="home">
+  <div>
+    <div class="live-bar">
+      <div class="live-dot"></div>
+      今晚 42 位在線 ・ 平均回覆 3 分鐘 ・ 信義區 8 位在線
+    </div>
+    <h2>今晚，認識新朋友<br>只要150元</h2>
+    <p>即時找到一起玩的同伴。<br><br>無論是酒吧聊天、KTV歡唱，還是下班後想找人放鬆一下，陪你玩都能幫你快速找到適合的夜生活玩伴。</p>
+    <div class="hero-buttons">
+      <a href="find.html" class="btn-main">今晚找人一起玩</a>
+      <a href="login.html" class="btn-second">成為陪玩夥伴</a>
+    </div>
+  </div>
+  <div class="players" id="players">
+    <div class="player-card">
+      <div class="player-top">
+        <div class="avatar"><div class="avatar-circle">A</div><div><h3>Amy</h3><div class="online">🟢 在線中</div></div></div>
+        <div class="tag">酒吧聊天</div>
+      </div>
+      <p>信義區 ・ 30分鐘可到</p>
+      <button onclick="window.location.href='find.html'">一起玩</button>
+    </div>
+    <div class="player-card">
+      <div class="player-top">
+        <div class="avatar"><div class="avatar-circle">K</div><div><h3>Kiki</h3><div class="online">🟢 在線中</div></div></div>
+        <div class="tag">KTV伴唱</div>
+      </div>
+      <p>西門 ・ 今晚可約</p>
+      <button onclick="window.location.href='find.html'">一起玩</button>
+    </div>
+    <div class="player-card">
+      <div class="player-top">
+        <div class="avatar"><div class="avatar-circle">M</div><div><h3>Mina</h3><div class="online">🟢 在線中</div></div></div>
+        <div class="tag">聊天陪伴</div>
+      </div>
+      <p>板橋 ・ 15分鐘可到</p>
+      <button onclick="window.location.href='find.html'">一起玩</button>
+    </div>
+  </div>
+</section>
+
+<!-- 安全機制 -->
+<section id="security">
+  <h2 class="section-title">安全承諾</h2>
+  <p class="section-sub">你的人身安全，是平台最高優先。</p>
+  <div class="security-grid">
+    <div class="security-card"><h3>🔐 實名驗證</h3><p>身份證與人臉辨識雙重認證。</p></div>
+    <div class="security-card"><h3>⭐ 雙向評價</h3><p>聚會後互相評價，確保體驗品質。</p></div>
+    <div class="security-card"><h3>📍 位置分享</h3><p>可分享即時位置給信任聯絡人。</p></div>
+    <div class="security-card"><h3>🚨 緊急回報</h3><p>危險狀況可一鍵通知平台。</p></div>
+  </div>
+</section>
+
+<!-- 加入 CTA -->
+<section class="cta-section" id="join">
+  <h2>準備好開始了嗎？</h2>
+  <p>選擇你的身份，立即開始</p>
+  <div class="cta-buttons">
+    <button class="btn-partner" onclick="window.location.href='find.html'">
+      💼 我要成為陪玩夥伴
+    </button>
+    <button class="btn-client" onclick="window.location.href='find.html'">
+      🌙 我要找陪玩夥伴
+    </button>
+  </div>
+</section>
+
+<footer>
+  <p style="margin-bottom:16px;font-size:18px;font-weight:700">陪你玩 PYW NIGHTLIFE</p>
+  <p style="margin-bottom:30px">Line 官方帳號：<a href="https://lin.ee/yuS2ZnE" target="_blank" style="color:#06C755;text-decoration:none">@260kefso</a></p>
+  <p style="color:#555">© 2026 PYW NIGHTLIFE・平台絕不涉及性交易・違規即封號</p>
+</footer>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./service-worker.js').catch(e=>console.log(e));
+  });
+}
+</script>
+</body>
+</html>
