@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>評價系統｜陪你玩</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#ff4fa3;
+  --pink-dim:rgba(255,79,163,.13);
+  --pink-border:rgba(255,79,163,.3);
+  --bg:#070710;
+  --surface:rgba(255,255,255,.06);
+  --surface2:rgba(255,255,255,.03);
+  --border:rgba(255,255,255,.09);
+  --text:#f0f0f0;
+  --muted:#888;
+  --green:#47ff92;
+  --gold:#fbbf24;
+}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px}
+
+/* 頂部 */
+.topbar{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;
+  background:rgba(7,7,16,.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:50;
+}
+.topbar h1{font-size:18px;font-weight:900}
+.topbar p{font-size:12px;color:var(--muted);margin-top:2px}
+.back-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;flex-shrink:0;
+}
+
+/* 分頁 */
+.tabs{
+  display:flex;border-bottom:1px solid var(--border);
+  background:rgba(7,7,16,.8);
+  position:sticky;top:65px;z-index:40;
+}
+.tab{
+  flex:1;padding:14px;text-align:center;font-size:14px;font-weight:500;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;
+  transition:.2s;
+}
+.tab.active{color:var(--pink);border-bottom-color:var(--pink)}
+
+.page{display:none;padding:16px}
+.page.active{display:block}
+
+/* ── 待評價區 ── */
+.section-label{font-size:13px;color:var(--muted);margin-bottom:12px;letter-spacing:.5px}
+
+.order-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:18px;margin-bottom:14px;
+}
+.order-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.av{
+  width:50px;height:50px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:20px;
+}
+.av-a{background:linear-gradient(135deg,#ff4fa3,#ff82c5)}
+.av-k{background:linear-gradient(135deg,#a78bfa,#c4b5fd)}
+.av-m{background:linear-gradient(135deg,#f59e0b,#fcd34d)}
+.order-info{flex:1}
+.order-name{font-size:16px;font-weight:700}
+.order-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.order-tag{
+  padding:4px 10px;border-radius:999px;font-size:12px;
+  background:var(--pink-dim);color:#ff9ad0;border:1px solid var(--pink-border);
+}
+.order-detail{
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+}
+.detail-chip{
+  padding:5px 12px;border-radius:999px;font-size:12px;
+  background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+}
+
+/* 星星評分 */
+.star-label{font-size:14px;color:var(--text);margin-bottom:8px;font-weight:500}
+.stars{display:flex;gap:6px;margin-bottom:16px}
+.star{font-size:32px;cursor:pointer;transition:.15s;filter:grayscale(1);opacity:.4}
+.star.on{filter:none;opacity:1;transform:scale(1.08)}
+.star:hover{transform:scale(1.15)}
+
+/* 標籤快選 */
+.tag-section{margin-bottom:14px}
+.tag-section-label{font-size:13px;color:var(--muted);margin-bottom:8px}
+.tag-row{display:flex;gap:6px;flex-wrap:wrap}
+.ev-tag{
+  padding:6px 14px;border-radius:999px;font-size:13px;
+  border:1px solid var(--border);color:var(--muted);
+  background:transparent;cursor:pointer;transition:.15s;
+  font-family:'Noto Sans TC',sans-serif;
+}
+.ev-tag.on{background:var(--pink-dim);border-color:var(--pink);color:#ff9ad0}
+
+/* 文字備註 */
+.note-area{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:12px;color:var(--text);font-size:14px;
+  font-family:'Noto Sans TC',sans-serif;resize:none;min-height:80px;
+  transition:.2s;
+}
+.note-area::placeholder{color:var(--muted)}
+.note-area:focus{outline:none;border-color:var(--pink)}
+
+/* 匿名開關 */
+.anon-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;margin:10px 0;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+.anon-info{font-size:14px}
+.anon-info span{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+.switch{position:relative;width:48px;height:26px}
+.switch input{opacity:0;width:0;height:0}
+.sw{position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:999px;cursor:pointer;transition:.25s}
+.sw:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:white;border-radius:50%;transition:.25s}
+input:checked+.sw{background:var(--pink)}
+input:checked+.sw:before{transform:translateX(22px)}
+
+/* 提交按鈕 */
+.submit-btn{
+  width:100%;padding:14px;border:none;border-radius:16px;
+  background:var(--pink);color:white;font-size:16px;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+  margin-top:14px;transition:.2s;
+  box-shadow:0 0 20px rgba(255,79,163,.3);
+}
+.submit-btn:active{transform:scale(.98);opacity:.9}
+.submit-btn:disabled{background:rgba(255,255,255,.1);color:var(--muted);box-shadow:none;cursor:not-allowed}
+
+/* ── 歷史評價 ── */
+.score-hero{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:20px;margin-bottom:16px;
+  display:flex;align-items:center;gap:20px;
+}
+.score-big{font-size:56px;font-weight:900;line-height:1;color:var(--gold)}
+.score-right{flex:1}
+.score-stars{font-size:22px;letter-spacing:2px;margin-bottom:6px}
+.score-count{font-size:13px;color:var(--muted)}
+.bar-rows{margin-top:10px;display:flex;flex-direction:column;gap:5px}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.bar-track{flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+.bar-fill{height:100%;background:var(--gold);border-radius:999px;transition:.6s}
+
+.review-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:18px;padding:16px;margin-bottom:12px;
+}
+.review-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.rev-av{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:700;
+}
+.rev-av-anon{background:rgba(255,255,255,.08);color:var(--muted)}
+.rev-name{font-size:14px;font-weight:600}
+.rev-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.rev-stars{font-size:16px;letter-spacing:1px;margin-left:auto}
+.rev-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.rev-tag{
+  padding:4px 10px;border-radius:999px;font-size:12px;
+  background:var(--pink-dim);border:1px solid var(--pink-border);color:#ff9ad0;
+}
+.rev-text{font-size:14px;color:#ccc;line-height:1.65}
+.rev-reply{
+  margin-top:10px;padding:10px 12px;
+  background:rgba(255,255,255,.04);border-radius:10px;
+  border-left:2px solid var(--pink);
+  font-size:13px;color:var(--muted);
+}
+.rev-reply strong{color:var(--text);font-size:12px;display:block;margin-bottom:3px}
+
+/* 我的評價（給出的） */
+.gave-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:18px;padding:16px;margin-bottom:12px;
+}
+.gave-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.gave-direction{font-size:11px;color:var(--muted);margin-bottom:8px}
+
+/* 空狀態 */
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty p{font-size:14px}
+
+/* 成功彈窗 */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#1D9E75;color:white;padding:12px 24px;border-radius:14px;
+  font-size:14px;font-weight:700;z-index:999;
+  transition:.35s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;box-shadow:0 4px 20px rgba(29,158,117,.4);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="back-btn">←</div>
+  <div>
+    <h1>評價系統</h1>
+    <p>雙向評價・建立信任</p>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('pending')">待評價 <span id="pending-badge" style="background:var(--pink);color:white;font-size:11px;padding:1px 7px;border-radius:999px;margin-left:4px">3</span></div>
+  <div class="tab" onclick="switchTab('received')">收到的評價</div>
+  <div class="tab" onclick="switchTab('gave')">我給的評價</div>
+</div>
+
+<!-- ── 待評價 ── -->
+<div class="page active" id="page-pending">
+
+  <!-- 訂單 1 -->
+  <div class="order-card" id="order-amy">
+    <div class="order-top">
+      <div class="av av-a">A</div>
+      <div class="order-info">
+        <div class="order-name">Amy</div>
+        <div class="order-meta">5月28日・信義區・酒吧聊天・3小時</div>
+      </div>
+      <div class="order-tag">待評價</div>
+    </div>
+    <div class="order-detail">
+      <span class="detail-chip">💰 $3,240 已完成</span>
+      <span class="detail-chip">⏱ 3 小時</span>
+      <span class="detail-chip">📍 信義區</span>
+    </div>
+
+    <div class="star-label">整體體驗</div>
+    <div class="stars" id="stars-amy">
+      <span class="star" onclick="setStar('amy',1)">⭐</span>
+      <span class="star" onclick="setStar('amy',2)">⭐</span>
+      <span class="star" onclick="setStar('amy',3)">⭐</span>
+      <span class="star" onclick="setStar('amy',4)">⭐</span>
+      <span class="star" onclick="setStar('amy',5)">⭐</span>
+    </div>
+
+    <div class="tag-section">
+      <div class="tag-section-label">優點標籤（可多選）</div>
+      <div class="tag-row" id="tags-amy-good">
+        <button class="ev-tag" onclick="toggleTag(this)">準時到場</button>
+        <button class="ev-tag" onclick="toggleTag(this)">聊天有趣</button>
+        <button class="ev-tag" onclick="toggleTag(this)">氣質好</button>
+        <button class="ev-tag" onclick="toggleTag(this)">如實呈現</button>
+        <button class="ev-tag" onclick="toggleTag(this)">尊重界線</button>
+        <button class="ev-tag" onclick="toggleTag(this)">會再約</button>
+      </div>
+    </div>
+
+    <div class="tag-section">
+      <div class="tag-section-label">需改進（可不選）</div>
+      <div class="tag-row" id="tags-amy-bad">
+        <button class="ev-tag" onclick="toggleTag(this)">遲到</button>
+        <button class="ev-tag" onclick="toggleTag(this)">照片落差</button>
+        <button class="ev-tag" onclick="toggleTag(this)">聊天冷淡</button>
+        <button class="ev-tag" onclick="toggleTag(this)">提前離場</button>
+      </div>
+    </div>
+
+    <textarea class="note-area" id="note-amy" placeholder="補充說明（選填）…"></textarea>
+
+    <div class="anon-row">
+      <div class="anon-info">
+        匿名評價
+        <span>對方看不到你的名字</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="anon-amy">
+        <span class="sw"></span>
+      </label>
+    </div>
+
+    <button class="submit-btn" id="btn-amy" onclick="submitRating('amy','Amy')">送出評價</button>
+  </div>
+
+  <!-- 訂單 2 -->
+  <div class="order-card" id="order-kiki">
+    <div class="order-top">
+      <div class="av av-k">K</div>
+      <div class="order-info">
+        <div class="order-name">Kiki</div>
+        <div class="order-meta">5月27日・西門・KTV伴唱・2小時</div>
+      </div>
+      <div class="order-tag">待評價</div>
+    </div>
+    <div class="order-detail">
+      <span class="detail-chip">💰 $2,160 已完成</span>
+      <span class="detail-chip">⏱ 2 小時</span>
+      <span class="detail-chip">📍 西門</span>
+    </div>
+
+    <div class="star-label">整體體驗</div>
+    <div class="stars" id="stars-kiki">
+      <span class="star" onclick="setStar('kiki',1)">⭐</span>
+      <span class="star" onclick="setStar('kiki',2)">⭐</span>
+      <span class="star" onclick="setStar('kiki',3)">⭐</span>
+      <span class="star" onclick="setStar('kiki',4)">⭐</span>
+      <span class="star" onclick="setStar('kiki',5)">⭐</span>
+    </div>
+
+    <div class="tag-section">
+      <div class="tag-section-label">優點標籤</div>
+      <div class="tag-row">
+        <button class="ev-tag" onclick="toggleTag(this)">歌聲好聽</button>
+        <button class="ev-tag" onclick="toggleTag(this)">氣氛活絡</button>
+        <button class="ev-tag" onclick="toggleTag(this)">準時到場</button>
+        <button class="ev-tag" onclick="toggleTag(this)">尊重界線</button>
+        <button class="ev-tag" onclick="toggleTag(this)">如實呈現</button>
+      </div>
+    </div>
+
+    <textarea class="note-area" placeholder="補充說明（選填）…"></textarea>
+
+    <div class="anon-row">
+      <div class="anon-info">
+        匿名評價
+        <span>對方看不到你的名字</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox">
+        <span class="sw"></span>
+      </label>
+    </div>
+
+    <button class="submit-btn" onclick="submitRating('kiki','Kiki')">送出評價</button>
+  </div>
+
+  <!-- 訂單 3 -->
+  <div class="order-card" id="order-mina">
+    <div class="order-top">
+      <div class="av av-m">M</div>
+      <div class="order-info">
+        <div class="order-name">Mina</div>
+        <div class="order-meta">5月26日・板橋・聊天陪伴・2小時</div>
+      </div>
+      <div class="order-tag">待評價</div>
+    </div>
+    <div class="order-detail">
+      <span class="detail-chip">💰 $2,160 已完成</span>
+      <span class="detail-chip">⏱ 2 小時</span>
+      <span class="detail-chip">📍 板橋</span>
+    </div>
+
+    <div class="star-label">整體體驗</div>
+    <div class="stars" id="stars-mina">
+      <span class="star" onclick="setStar('mina',1)">⭐</span>
+      <span class="star" onclick="setStar('mina',2)">⭐</span>
+      <span class="star" onclick="setStar('mina',3)">⭐</span>
+      <span class="star" onclick="setStar('mina',4)">⭐</span>
+      <span class="star" onclick="setStar('mina',5)">⭐</span>
+    </div>
+
+    <div class="tag-section">
+      <div class="tag-section-label">優點標籤</div>
+      <div class="tag-row">
+        <button class="ev-tag" onclick="toggleTag(this)">聊天有趣</button>
+        <button class="ev-tag" onclick="toggleTag(this)">溫柔體貼</button>
+        <button class="ev-tag" onclick="toggleTag(this)">準時到場</button>
+        <button class="ev-tag" onclick="toggleTag(this)">氣質好</button>
+        <button class="ev-tag" onclick="toggleTag(this)">尊重界線</button>
+      </div>
+    </div>
+
+    <textarea class="note-area" placeholder="補充說明（選填）…"></textarea>
+
+    <div class="anon-row">
+      <div class="anon-info">
+        匿名評價
+        <span>對方看不到你的名字</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox">
+        <span class="sw"></span>
+      </label>
+    </div>
+
+    <button class="submit-btn" onclick="submitRating('mina','Mina')">送出評價</button>
+  </div>
+
+</div>
+
+<!-- ── 收到的評價 ── -->
+<div class="page" id="page-received">
+
+  <div class="score-hero">
+    <div class="score-big">4.9</div>
+    <div class="score-right">
+      <div class="score-stars">⭐⭐⭐⭐⭐</div>
+      <div class="score-count">共 28 則評價</div>
+      <div class="bar-rows">
+        <div class="bar-row">5★ <div class="bar-track"><div class="bar-fill" style="width:82%"></div></div> 23</div>
+        <div class="bar-row">4★ <div class="bar-track"><div class="bar-fill" style="width:14%"></div></div> 4</div>
+        <div class="bar-row">3★ <div class="bar-track"><div class="bar-fill" style="width:4%"></div></div> 1</div>
+        <div class="bar-row">2★ <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div> 0</div>
+        <div class="bar-row">1★ <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div> 0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="review-card">
+    <div class="review-top">
+      <div class="rev-av" style="background:linear-gradient(135deg,#60a5fa,#93c5fd);color:#1e40af">C</div>
+      <div>
+        <div class="rev-name">Chris</div>
+        <div class="rev-meta">5月28日・信義區・酒吧聊天</div>
+      </div>
+      <div class="rev-stars">⭐⭐⭐⭐⭐</div>
+    </div>
+    <div class="rev-tags">
+      <span class="rev-tag">準時到場</span>
+      <span class="rev-tag">聊天有趣</span>
+      <span class="rev-tag">尊重界線</span>
+    </div>
+    <div class="rev-text">Amy 非常準時，聊天話題豐富，整個晚上都很愉快。完全如實呈現，下次還會約！</div>
+    <div class="rev-reply">
+      <strong>Amy 的回覆</strong>
+      謝謝你的評價！跟你聊天也很開心，歡迎再約 😊
+    </div>
+  </div>
+
+  <div class="review-card">
+    <div class="review-top">
+      <div class="rev-av rev-av-anon">匿</div>
+      <div>
+        <div class="rev-name">匿名用戶</div>
+        <div class="rev-meta">5月25日・西門・KTV伴唱</div>
+      </div>
+      <div class="rev-stars">⭐⭐⭐⭐⭐</div>
+    </div>
+    <div class="rev-tags">
+      <span class="rev-tag">氣氛活絡</span>
+      <span class="rev-tag">如實呈現</span>
+    </div>
+    <div class="rev-text">很有活力，KTV 氣氛帶得很好，唱歌也很好聽，整體體驗超棒！</div>
+  </div>
+
+  <div class="review-card">
+    <div class="review-top">
+      <div class="rev-av" style="background:linear-gradient(135deg,#34d399,#6ee7b7);color:#065f46">J</div>
+      <div>
+        <div class="rev-name">Jason</div>
+        <div class="rev-meta">5月20日・大安區・商務陪同</div>
+      </div>
+      <div class="rev-stars">⭐⭐⭐⭐</div>
+    </div>
+    <div class="rev-tags">
+      <span class="rev-tag">氣質好</span>
+      <span class="rev-tag">準時到場</span>
+    </div>
+    <div class="rev-text">整體不錯，氣質很好，適合商務場合。唯一小建議是可以多主動帶動話題。</div>
+    <div class="rev-reply">
+      <strong>Amy 的回覆</strong>
+      感謝回饋！下次我會更主動一些 😊
+    </div>
+  </div>
+
+</div>
+
+<!-- ── 我給的評價 ── -->
+<div class="page" id="page-gave">
+
+  <div class="gave-card">
+    <div class="gave-direction">你評價了</div>
+    <div class="gave-top">
+      <div class="av av-k" style="width:38px;height:38px;font-size:16px">K</div>
+      <div>
+        <div style="font-size:15px;font-weight:700">Kiki</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">5月22日・西門・KTV伴唱</div>
+      </div>
+      <div class="rev-stars" style="margin-left:auto;font-size:15px">⭐⭐⭐⭐⭐</div>
+    </div>
+    <div class="rev-tags">
+      <span class="rev-tag">歌聲好聽</span>
+      <span class="rev-tag">氣氛活絡</span>
+    </div>
+    <div style="font-size:13px;color:var(--muted)">很開心的一晚，唱歌超嗨！</div>
+  </div>
+
+  <div class="gave-card">
+    <div class="gave-direction">你評價了</div>
+    <div class="gave-top">
+      <div class="av av-m" style="width:38px;height:38px;font-size:16px">M</div>
+      <div>
+        <div style="font-size:15px;font-weight:700">Mina</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">5月15日・板橋・聊天陪伴</div>
+      </div>
+      <div class="rev-stars" style="margin-left:auto;font-size:15px">⭐⭐⭐⭐⭐</div>
+    </div>
+    <div class="rev-tags">
+      <span class="rev-tag">溫柔體貼</span>
+      <span class="rev-tag">聊天有趣</span>
+    </div>
+    <div style="font-size:13px;color:var(--muted)">聊起來很舒服，壓力全消！下次還會約。</div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">✅ 評價已送出，感謝你的回饋！</div>
+
+<script>
+const starState={};
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active', ['pending','received','gave'][i]===tab);
+  });
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+}
+
+function setStar(id, n){
+  starState[id]=n;
+  const stars=document.querySelectorAll(`#stars-${id} .star`);
+  stars.forEach((s,i)=>{
+    s.classList.toggle('on', i<n);
+  });
+}
+
+function toggleTag(el){
+  el.classList.toggle('on');
+}
+
+function submitRating(id, name){
+  if(!starState[id]){
+    alert('請先選擇星星評分！');return;
+  }
+  const card=document.getElementById('order-'+id);
+  card.style.opacity='0';
+  card.style.transform='scale(.97)';
+  card.style.transition='.35s';
+  setTimeout(()=>{card.style.display='none'},350);
+
+  // 減少待評價 badge
+  const badge=document.getElementById('pending-badge');
+  let n=parseInt(badge.textContent)-1;
+  badge.textContent=n;
+  if(n===0)badge.style.display='none';
+
+  showToast('✅ 對 '+name+' 的評價已送出！');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>
