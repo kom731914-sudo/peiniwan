@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4fa3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="陪你玩">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>陪你玩｜PYW NIGHTLIFE</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --pink:#ff4fa3;--pink-dim:rgba(255,79,163,.13);--pink-border:rgba(255,79,163,.28);
+  --green:#47ff92;--amber:#fbbf24;--bg:#070710;
+  --surface:rgba(255,255,255,.06);--surface2:rgba(255,255,255,.03);
+  --border:rgba(255,255,255,.09);--text:#f0f0f0;--muted:#777;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(255,79,163,.12),transparent),radial-gradient(ellipse 50% 50% at 80% 80%,rgba(255,79,163,.07),transparent);pointer-events:none;z-index:0}
+.app{display:flex;flex-direction:column;height:100%;position:relative;z-index:1}
+.topbar{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.logo-row{display:flex;align-items:center;gap:10px}
+.logo-icon{width:40px;height:40px;border-radius:12px;background:var(--pink);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;box-shadow:0 0 16px rgba(255,79,163,.4)}
+.logo-text{font-size:20px;font-weight:900;letter-spacing:.5px}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:1px}
+.top-right{display:flex;align-items:center;gap:8px}
+.top-btn{width:38px;height:38px;border-radius:11px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;position:relative;transition:.15s}
+.top-btn:active{background:var(--pink-dim)}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--pink);border:2px solid var(--bg)}
+.content{flex:1;overflow-y:auto;padding:0 16px 100px}
+.content::-webkit-scrollbar{display:none}
+.live-banner{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);margin-bottom:20px}
+.live-dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.live-text{font-size:13px;color:var(--text);flex:1}
+.live-text span{color:var(--green);font-weight:700}
+.profile-card{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:18px;margin-bottom:20px;display:flex;align-items:center;gap:14px}
+.profile-av{width:60px;height:60px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#ff4fa3,#ff82c5);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;box-shadow:0 0 20px rgba(255,79,163,.3);position:relative}
+.profile-av::after{content:'';position:absolute;bottom:2px;right:2px;width:14px;height:14px;border-radius:50%;background:var(--green);border:2px solid var(--bg)}
+.profile-info{flex:1;min-width:0}
+.profile-name{font-size:18px;font-weight:900}
+.profile-tag{font-size:12px;color:var(--muted);margin-top:3px}
+.profile-stats{display:flex;gap:16px;margin-top:8px}
+.pstat-num{font-size:16px;font-weight:700}
+.pstat-lbl{font-size:11px;color:var(--muted);margin-top:1px}
+.online-toggle{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0}
+.online-toggle-label{font-size:11px;color:var(--muted)}
+.switch{position:relative;width:48px;height:26px}
+.switch input{opacity:0;width:0;height:0}
+.sw{position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:999px;cursor:pointer;transition:.25s}
+.sw:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:white;border-radius:50%;transition:.25s}
+input:checked+.sw{background:var(--green)}
+input:checked+.sw:before{transform:translateX(22px)}
+.earn-banner{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.earn-card{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:12px;text-align:center}
+.earn-num{font-size:18px;font-weight:900}
+.earn-lbl{font-size:11px;color:var(--muted);margin-top:3px}
+.section-title{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.5px;margin-bottom:12px}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:18px 16px;cursor:pointer;transition:.18s;color:var(--text);display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;-webkit-user-select:none;user-select:none}
+.feature-card:active{transform:scale(.97);border-color:var(--pink-border);background:var(--pink-dim)}
+.feature-icon{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.feature-name{font-size:15px;font-weight:700;line-height:1.2}
+.feature-desc{font-size:12px;color:var(--muted);line-height:1.4;margin-top:2px}
+.feature-badge{position:absolute;top:12px;right:12px;min-width:20px;height:20px;border-radius:999px;background:var(--pink);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.feature-arrow{position:absolute;bottom:14px;right:14px;color:var(--muted);font-size:16px}
+.feature-card.wide{grid-column:span 2}
+.sos-card{background:rgba(255,59,59,.08);border-color:rgba(255,59,59,.2);flex-direction:row;align-items:center;gap:14px}
+.sos-card-right{flex:1}
+.order-mini{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--surface2);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:.15s;color:var(--text)}
+.order-mini:active{background:var(--pink-dim)}
+.order-mini-av{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+.order-mini-info{flex:1;min-width:0}
+.order-mini-name{font-size:14px;font-weight:600}
+.order-mini-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.order-mini-amount{font-size:15px;font-weight:700;flex-shrink:0}
+.status-pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;flex-shrink:0}
+.sp-active{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.25)}
+.sp-pending{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.25)}
+.sp-done{background:rgba(71,255,146,.1);color:var(--green);border:1px solid rgba(71,255,146,.25)}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(7,7,16,.96);border-top:1px solid var(--border);backdrop-filter:blur(20px);display:flex;align-items:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;cursor:pointer;color:var(--muted);-webkit-user-select:none;user-select:none}
+.nav-item.active{color:var(--pink)}
+.nav-icon{font-size:22px;line-height:1;position:relative}
+.nav-label{font-size:10px;font-weight:500;letter-spacing:.3px}
+.nav-badge{position:absolute;top:-4px;right:-6px;width:16px;height:16px;border-radius:50%;background:var(--pink);color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.sos-fab{position:fixed;bottom:80px;right:16px;width:52px;height:52px;border-radius:50%;background:#ff3b3b;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:white;letter-spacing:.5px;box-shadow:0 0 0 6px rgba(255,59,59,.15),0 0 20px rgba(255,59,59,.4);z-index:99;transition:.2s;animation:sos-pulse 2.5s infinite;font-family:'Noto Sans TC',sans-serif}
+@keyframes sos-pulse{0%,100%{box-shadow:0 0 0 6px rgba(255,59,59,.15),0 0 20px rgba(255,59,59,.4)}50%{box-shadow:0 0 0 12px rgba(255,59,59,.05),0 0 24px rgba(255,59,59,.3)}}
+.sos-fab:active{transform:scale(.92)}
+.notif-popup{position:fixed;top:70px;left:16px;right:16px;background:#0f0f1e;border:1px solid var(--border);border-radius:18px;padding:14px 16px;z-index:200;transform:translateY(-20px);opacity:0;pointer-events:none;transition:.3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.notif-popup.show{transform:translateY(0);opacity:1;pointer-events:auto}
+.notif-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.notif-row:last-child{margin-bottom:0}
+.notif-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.notif-title{font-size:13px;font-weight:700}
+.notif-msg{font-size:12px;color:var(--muted);margin-top:2px}
+.notif-close{position:absolute;top:10px;right:12px;font-size:18px;color:var(--muted);cursor:pointer}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(15,15,30,.95);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:300;transition:.3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;backdrop-filter:blur(10px);opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.line-fab{position:fixed;bottom:144px;left:16px;width:52px;height:52px;border-radius:50%;background:#06C755;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:99;text-decoration:none;box-shadow:0 0 0 6px rgba(6,199,85,.15),0 0 20px rgba(6,199,85,.35);transition:.2s}
+.line-fab:active{transform:scale(.92)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo-row">
+      <div class="logo-icon">P</div>
+      <div>
+        <div class="logo-text">陪你玩</div>
+        <div class="logo-sub">PYW NIGHTLIFE</div>
+      </div>
+    </div>
+    <div class="top-right">
+      <div class="top-btn" onclick="toggleNotif()">🔔<div class="notif-dot"></div></div>
+      <div class="top-btn" onclick="goTo('order.html')" title="接單設定">⚙️</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="live-banner">
+      <div class="live-dot"></div>
+      <div class="live-text">今晚 <span>42 位</span>在線・信義區 <span>8 位</span>・平均回覆 <span>3 分鐘</span></div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-av">A</div>
+      <div class="profile-info">
+        <div class="profile-name">Amy</div>
+        <div class="profile-tag">信義區・酒吧聊天・KTV 伴唱</div>
+        <div class="profile-stats">
+          <div class="pstat"><div class="pstat-num" style="color:var(--amber)">4.9★</div><div class="pstat-lbl">評分</div></div>
+          <div class="pstat"><div class="pstat-num">28</div><div class="pstat-lbl">評價數</div></div>
+          <div class="pstat"><div class="pstat-num" style="color:var(--green)">12</div><div class="pstat-lbl">本月單</div></div>
+        </div>
+      </div>
+      <div class="online-toggle">
+        <div class="online-toggle-label" id="toggle-lbl">離線</div>
+        <label class="switch"><input type="checkbox" id="online-sw" onchange="toggleOnline()"><span class="sw"></span></label>
+      </div>
+    </div>
+    <div class="earn-banner">
+      <div class="earn-card"><div class="earn-num" style="color:var(--green)">$3,240</div><div class="earn-lbl">今日收入</div></div>
+      <div class="earn-card"><div class="earn-num" style="color:var(--amber)">$2,160</div><div class="earn-lbl">待入帳</div></div>
+      <div class="earn-card"><div class="earn-num" style="color:var(--pink)">$4,320</div><div class="earn-lbl">錢包餘額</div></div>
+    </div>
+    <div class="section-title">主要功能</div>
+    <div class="feature-grid">
+      <div class="feature-card" onclick="goTo('order.html')">
+        <div class="feature-icon" style="background:rgba(255,79,163,.12);border:1px solid rgba(255,79,163,.2)">📋</div>
+        <div><div class="feature-name">接單系統</div><div class="feature-desc">排班・開關・收費設定</div></div>
+        <div class="feature-badge">2</div>
+        <div class="feature-arrow">›</div>
+      </div>
+      <div class="feature-card" onclick="goTo('chat.html')">
+        <div class="feature-icon" style="background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2)">💬</div>
+        <div><div class="feature-name">聊天室</div><div class="feature-desc">即時配對・訊息往來</div></div>
+        <div class="feature-badge" style="background:#60a5fa">3</div>
+        <div class="feature-arrow">›</div>
+      </div>
+      <div class="feature-card" onclick="goTo('rating.html')">
+        <div class="feature-icon" style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2)">⭐</div>
+        <div><div class="feature-name">評價系統</div><div class="feature-desc">雙向評價・建立信任</div></div>
+        <div class="feature-badge" style="background:var(--amber)">3</div>
+        <div class="feature-arrow">›</div>
+      </div>
+      <div class="feature-card" onclick="goTo('payment.html')">
+        <div class="feature-icon" style="background:rgba(71,255,146,.08);border:1px solid rgba(71,255,146,.18)">💰</div>
+        <div><div class="feature-name">金流系統</div><div class="feature-desc">訂金・提領・明細</div></div>
+        <div class="feature-arrow">›</div>
+      </div>
+      <div class="feature-card wide sos-card" onclick="goTo('sos.html')">
+        <div class="feature-icon" style="background:rgba(255,59,59,.15);border:1px solid rgba(255,59,59,.3);width:52px;height:52px;border-radius:50%">🚨</div>
+        <div class="sos-card-right">
+          <div class="feature-name" style="font-size:17px">SOS 安全機制</div>
+          <div class="feature-desc">緊急求助・位置分享・行程打卡・AI 風險評分</div>
+        </div>
+        <div class="feature-arrow">›</div>
+      </div>
+    </div>
+    <!-- Line 官方帳號 -->
+    <div style="background:rgba(6,199,85,.08);border:1px solid rgba(6,199,85,.25);border-radius:20px;padding:18px;margin-bottom:20px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="window.open('https://lin.ee/yuS2ZnE','_blank')">
+      <div style="width:52px;height:52px;border-radius:50%;background:#06C755;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg viewBox="0 0 24 24" fill="white" width="28" height="28"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.630 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61V9.863h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.630 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.590.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700;color:#06C755">加入 Line 官方帳號</div>
+        <div style="font-size:12px;color:#888;margin-top:3px">陪你玩 PYW・@260kefso</div>
+      </div>
+      <div style="font-size:20px">›</div>
+    </div>
+    <div class="section-title">近期訂單</div>
+    <div class="order-mini" onclick="goTo('payment.html')">
+      <div class="order-mini-av" style="background:linear-gradient(135deg,#60a5fa,#93c5fd);color:#1e3a8a">C</div>
+      <div class="order-mini-info"><div class="order-mini-name">Chris・酒吧聊天</div><div class="order-mini-sub">今晚 21:00・信義區・3 小時</div></div>
+      <div class="status-pill sp-active">進行中</div>
+      <div class="order-mini-amount" style="color:var(--pink)">$3,240</div>
+    </div>
+    <div class="order-mini" onclick="goTo('payment.html')">
+      <div class="order-mini-av" style="background:linear-gradient(135deg,#f59e0b,#fcd34d);color:#78350f">J</div>
+      <div class="order-mini-info"><div class="order-mini-name">Jason・商務陪同</div><div class="order-mini-sub">明天 20:00・大安區・2 小時</div></div>
+      <div class="status-pill sp-pending">待訂金</div>
+      <div class="order-mini-amount" style="color:var(--amber)">$3,240</div>
+    </div>
+    <div class="order-mini" onclick="goTo('payment.html')">
+      <div class="order-mini-av" style="background:linear-gradient(135deg,#a78bfa,#c4b5fd);color:#4c1d95">K</div>
+      <div class="order-mini-info"><div class="order-mini-name">Kevin・KTV 伴唱</div><div class="order-mini-sub">5/28・西門・2 小時</div></div>
+      <div class="status-pill sp-done">已入帳</div>
+      <div class="order-mini-amount" style="color:var(--green)">$2,160</div>
+    </div>
+  </div>
+</div>
+<button class="sos-fab" onclick="goTo('sos.html')">SOS</button>
+<div class="bottom-nav">
+  <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-label">首頁</div></div>
+  <div class="nav-item" onclick="goTo('chat.html')"><div class="nav-icon">💬<div class="nav-badge">3</div></div><div class="nav-label">訊息</div></div>
+  <div class="nav-item" onclick="goTo('order.html')"><div class="nav-icon">📋</div><div class="nav-label">接單</div></div>
+  <div class="nav-item" onclick="goTo('payment.html')"><div class="nav-icon">💰</div><div class="nav-label">金流</div></div>
+  <div class="nav-item" onclick="goTo('rating.html')"><div class="nav-icon">⭐</div><div class="nav-label">評價</div></div>
+</div>
+<div class="notif-popup" id="notif-popup">
+  <div class="notif-close" onclick="closeNotif()">✕</div>
+  <div class="notif-row"><div class="notif-icon">💬</div><div><div class="notif-title">Chris 傳訊給你</div><div class="notif-msg">今晚 9 點 Indulge 見！</div></div></div>
+  <div class="notif-row"><div class="notif-icon">💰</div><div><div class="notif-title">訂金已入帳</div><div class="notif-msg">Jason 已繳交訂金 $1,080</div></div></div>
+  <div class="notif-row"><div class="notif-icon">⭐</div><div><div class="notif-title">新評價通知</div><div class="notif-msg">Kevin 給了你 5 星好評！</div></div></div>
+</div>
+<div class="toast" id="toast"></div>
+<a class="line-fab" href="https://lin.ee/yuS2ZnE" target="_blank" title="加入 Line @260kefso">
+  <svg viewBox="0 0 24 24" fill="white" width="28" height="28"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.630 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61V9.863h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.630 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.590.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+</a>
+<script>
+function goTo(page){window.location.href=page}
+function toggleOnline(){
+  const on=document.getElementById('online-sw').checked;
+  const lbl=document.getElementById('toggle-lbl');
+  lbl.textContent=on?'在線':'離線';
+  lbl.style.color=on?'var(--green)':'var(--muted)';
+  showToast(on?'🟢 你已上線，開始接單！':'⭕ 已切換為離線');
+}
+let notifOpen=false;
+function toggleNotif(){
+  notifOpen=!notifOpen;
+  document.getElementById('notif-popup').classList.toggle('show',notifOpen);
+  if(notifOpen){document.querySelector('.notif-dot').style.display='none';setTimeout(()=>{if(notifOpen)closeNotif()},5000);}
+}
+function closeNotif(){notifOpen=false;document.getElementById('notif-popup').classList.remove('show')}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500);
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(r=>console.log('✅ SW:',r.scope))
+      .catch(e=>console.log('❌ SW:',e));
+  });
+}
+</script>
+</body>
+</html>
