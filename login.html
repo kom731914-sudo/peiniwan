@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>登入／註冊｜陪你玩</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --pink:#ff4fa3;--pink2:#ff82c5;
+  --pink-dim:rgba(255,79,163,.12);--pink-border:rgba(255,79,163,.3);
+  --green:#47ff92;--amber:#fbbf24;
+  --bg:#07070f;--card:rgba(255,255,255,.06);--card2:rgba(255,255,255,.03);
+  --border:rgba(255,255,255,.09);--border2:rgba(255,255,255,.18);
+  --text:#f0f0f0;--muted:#666;--muted2:#999;
+  --red:#ff4444;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(255,79,163,.18),transparent),
+             radial-gradient(ellipse 50% 40% at 100% 100%,rgba(255,130,197,.08),transparent);
+  pointer-events:none;z-index:0}
+
+.app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+
+/* ── 步驟指示器 ── */
+.step-bar{
+  padding:16px 20px;display:flex;align-items:center;gap:8px;
+  background:rgba(7,7,15,.92);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);position:sticky;top:0;z-index:50;
+}
+.step-back{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0}
+.step-dots{display:flex;gap:6px;align-items:center;flex:1;justify-content:center}
+.sdot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);transition:.3s}
+.sdot.active{background:var(--pink);width:24px;border-radius:999px}
+.sdot.done{background:var(--green)}
+.step-skip{font-size:13px;color:var(--muted2);cursor:pointer}
+
+/* ── 頁面容器 ── */
+.pages{flex:1;overflow:hidden;position:relative}
+.page{
+  position:absolute;inset:0;overflow-y:auto;
+  padding:0 20px 40px;
+  transition:.35s cubic-bezier(.4,0,.2,1);
+  transform:translateX(100%);opacity:0;
+  display:flex;flex-direction:column;
+}
+.page.active{transform:translateX(0);opacity:1}
+.page.exit{transform:translateX(-100%);opacity:0}
+.page::-webkit-scrollbar{display:none}
+
+/* ── 身份選擇頁 ── */
+.role-page{padding-top:40px}
+.brand{text-align:center;margin-bottom:40px}
+.brand-icon{width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,var(--pink),var(--pink2));display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;margin:0 auto 16px;box-shadow:0 0 40px rgba(255,79,163,.4)}
+.brand h1{font-size:32px;font-weight:900;margin-bottom:6px}
+.brand p{font-size:15px;color:var(--muted2);line-height:1.6}
+.role-cards{display:flex;flex-direction:column;gap:14px;margin-bottom:28px}
+.role-card{
+  padding:24px;border-radius:22px;border:2px solid var(--border);
+  background:var(--card);cursor:pointer;transition:.2s;
+  display:flex;align-items:center;gap:18px;
+}
+.role-card:active{transform:scale(.98)}
+.role-card.selected{border-color:var(--pink);background:var(--pink-dim)}
+.role-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.role-info h3{font-size:18px;font-weight:800;margin-bottom:4px}
+.role-info p{font-size:13px;color:var(--muted2);line-height:1.5}
+.role-check{margin-left:auto;font-size:22px;opacity:0;transition:.2s}
+.role-card.selected .role-check{opacity:1}
+.divider-text{text-align:center;color:var(--muted2);font-size:13px;margin:16px 0;position:relative}
+.divider-text::before,.divider-text::after{content:'';position:absolute;top:50%;width:35%;height:1px;background:var(--border)}
+.divider-text::before{left:0}.divider-text::after{right:0}
+.line-login-btn{
+  width:100%;padding:16px;border-radius:16px;border:1px solid rgba(6,199,85,.4);
+  background:rgba(6,199,85,.08);color:#06C755;
+  font-size:16px;font-weight:700;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;
+  display:flex;align-items:center;justify-content:center;gap:10px;transition:.2s;
+}
+.line-login-btn:hover{background:rgba(6,199,85,.15)}
+
+/* ── 通用表單樣式 ── */
+.page-header{padding-top:32px;margin-bottom:28px}
+.page-header h2{font-size:26px;font-weight:900;margin-bottom:6px}
+.page-header p{font-size:14px;color:var(--muted2);line-height:1.6}
+.form-group{margin-bottom:16px}
+.form-label{font-size:13px;color:var(--muted2);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.form-label a{color:var(--pink);text-decoration:none;font-size:13px}
+.input-wrap{position:relative}
+.form-input{
+  width:100%;padding:14px 16px;border-radius:14px;
+  border:1px solid var(--border2);background:var(--card);
+  color:var(--text);font-size:15px;font-family:'Noto Sans TC',sans-serif;
+  transition:.2s;
+}
+.form-input:focus{outline:none;border-color:var(--pink);background:var(--pink-dim)}
+.form-input::placeholder{color:var(--muted)}
+.form-input.error{border-color:var(--red);background:rgba(255,68,68,.06)}
+.input-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:18px;cursor:pointer;color:var(--muted2)}
+.error-msg{font-size:12px;color:var(--red);margin-top:6px;display:none}
+.error-msg.show{display:block}
+.form-hint{font-size:12px;color:var(--muted2);margin-top:6px;line-height:1.5}
+
+/* OTP 輸入 */
+.otp-wrap{display:flex;gap:10px;justify-content:center;margin:20px 0}
+.otp-input{
+  width:52px;height:60px;border-radius:14px;border:1px solid var(--border2);
+  background:var(--card);color:var(--text);font-size:24px;font-weight:700;
+  text-align:center;font-family:'Noto Sans TC',sans-serif;transition:.2s;
+}
+.otp-input:focus{outline:none;border-color:var(--pink);background:var(--pink-dim)}
+.otp-resend{text-align:center;font-size:13px;color:var(--muted2);margin-top:8px}
+.otp-resend a{color:var(--pink);cursor:pointer}
+.otp-timer{color:var(--pink);font-weight:700}
+
+/* 身份驗證 */
+.verify-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.verify-item{
+  display:flex;align-items:center;gap:14px;padding:16px;
+  border-radius:16px;background:var(--card);border:1px solid var(--border);
+  cursor:pointer;transition:.15s;
+}
+.verify-item:active{background:var(--pink-dim)}
+.verify-item.done{border-color:rgba(71,255,146,.3);background:rgba(71,255,146,.06)}
+.verify-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:rgba(255,255,255,.05)}
+.verify-info{flex:1}
+.verify-name{font-size:15px;font-weight:600}
+.verify-sub{font-size:12px;color:var(--muted2);margin-top:3px}
+.verify-status{font-size:13px;font-weight:600;flex-shrink:0}
+.vs-done{color:var(--green)}
+.vs-todo{color:var(--muted2)}
+.vs-req{color:var(--pink)}
+
+/* 收費設定簡版 */
+.fee-simple{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:16px;margin-bottom:14px;
+}
+.fee-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.fee-row:last-child{border-bottom:none}
+.fee-label-txt{font-size:14px}
+.fee-input-s{width:90px;padding:8px 12px;border:1px solid var(--border2);border-radius:10px;font-size:14px;text-align:right;background:var(--card2);color:var(--text);font-family:'Noto Sans TC',sans-serif}
+.fee-input-s:focus{outline:none;border-color:var(--pink)}
+.fee-unit-s{font-size:12px;color:var(--muted2)}
+
+/* 主按鈕 */
+.main-btn{
+  width:100%;padding:16px;border-radius:16px;border:none;
+  background:linear-gradient(135deg,var(--pink),var(--pink2));
+  color:white;font-size:17px;font-weight:800;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;
+  box-shadow:0 0 24px rgba(255,79,163,.35);transition:.2s;
+  margin-top:8px;
+}
+.main-btn:active{transform:scale(.98);opacity:.9}
+.main-btn:disabled{background:rgba(255,255,255,.1);color:var(--muted2);box-shadow:none;cursor:not-allowed}
+.sub-btn{
+  width:100%;padding:14px;border-radius:16px;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text);font-size:15px;font-weight:600;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;margin-top:10px;transition:.2s;
+}
+.sub-btn:active{background:var(--card)}
+
+/* 完成頁 */
+.success-page{align-items:center;justify-content:center;text-align:center;padding-top:60px}
+.success-icon{width:100px;height:100px;border-radius:50%;background:rgba(71,255,146,.1);border:2px solid rgba(71,255,146,.3);display:flex;align-items:center;justify-content:center;font-size:50px;margin:0 auto 24px;animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.success-title{font-size:28px;font-weight:900;margin-bottom:10px}
+.success-sub{font-size:15px;color:var(--muted2);line-height:1.7;margin-bottom:32px}
+.profile-preview{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;
+  text-align:left;
+}
+.pp-av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--pink2));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;flex-shrink:0}
+.pp-name{font-size:17px;font-weight:800}
+.pp-sub{font-size:12px;color:var(--muted2);margin-top:4px}
+.pp-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--green);background:rgba(71,255,146,.08);border:1px solid rgba(71,255,146,.2);padding:3px 8px;border-radius:999px;margin-top:6px}
+
+/* Toast */
+.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(15,15,30,.96);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:300;transition:.3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* 協議文字 */
+.agreement{font-size:12px;color:var(--muted2);text-align:center;line-height:1.6;margin-top:14px}
+.agreement a{color:var(--pink);text-decoration:none}
+
+/* 密碼強度 */
+.pwd-strength{margin-top:8px;height:4px;border-radius:999px;background:var(--border);overflow:hidden}
+.pwd-bar{height:100%;border-radius:999px;transition:.3s;width:0}
+.pwd-hint{font-size:11px;margin-top:5px;color:var(--muted2)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- 步驟列 -->
+<div class="step-bar">
+  <div class="step-back" id="step-back" onclick="goBack()">←</div>
+  <div class="step-dots" id="step-dots"></div>
+  <div class="step-skip" id="step-skip" onclick="skipStep()"></div>
+</div>
+
+<!-- 頁面容器 -->
+<div class="pages" id="pages">
+
+  <!-- 0: 身份選擇 -->
+  <div class="page role-page active" id="page-0">
+    <div class="brand">
+      <div class="brand-icon">P</div>
+      <h1>陪你玩</h1>
+      <p>台灣最安全的夜生活媒合平台<br>請選擇你的身份開始</p>
+    </div>
+    <div class="role-cards">
+      <div class="role-card" id="role-companion" onclick="selectRole('companion')">
+        <div class="role-icon" style="background:rgba(255,79,163,.12)">💼</div>
+        <div class="role-info">
+          <h3>我是陪玩夥伴</h3>
+          <p>接單賺錢・自訂時間・安全保障</p>
+        </div>
+        <div class="role-check">✓</div>
+      </div>
+      <div class="role-card" id="role-client" onclick="selectRole('client')">
+        <div class="role-icon" style="background:rgba(96,165,250,.1)">🌙</div>
+        <div class="role-info">
+          <h3>我要找玩伴</h3>
+          <p>即時配對・安心付款・評價保障</p>
+        </div>
+        <div class="role-check">✓</div>
+      </div>
+    </div>
+    <div class="divider-text">或使用 Line 快速登入</div>
+    <button class="line-login-btn" onclick="lineLogin()">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.630 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61V9.863h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.630 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.590.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      使用 Line 登入
+    </button>
+    <p class="agreement">繼續即代表你同意<a href="#">服務條款</a>及<a href="#">隱私政策</a><br>平台絕不涉及性交易，違規即封號</p>
+  </div>
+
+  <!-- 1: 手機號碼 -->
+  <div class="page" id="page-1">
+    <div class="page-header">
+      <h2>輸入手機號碼</h2>
+      <p>我們將發送驗證碼到你的手機，確保帳號安全</p>
+    </div>
+    <div class="form-group">
+      <div class="form-label">手機號碼</div>
+      <div class="input-wrap">
+        <input class="form-input" id="phone-input" type="tel" placeholder="09xxxxxxxx" maxlength="10" oninput="validatePhone(this)">
+      </div>
+      <div class="error-msg" id="phone-error">請輸入正確的手機號碼格式（09 開頭，10 位數）</div>
+      <div class="form-hint">僅用於身份驗證，不會公開顯示</div>
+    </div>
+    <button class="main-btn" id="phone-btn" onclick="sendOTP()" disabled>發送驗證碼</button>
+    <p class="agreement" style="margin-top:16px">已有帳號？<a href="#" onclick="goToLogin()">直接登入</a></p>
+  </div>
+
+  <!-- 2: OTP 驗證 -->
+  <div class="page" id="page-2">
+    <div class="page-header">
+      <h2>輸入驗證碼</h2>
+      <p id="otp-desc">已發送 6 位數驗證碼到<br><strong style="color:var(--text)">0912-345-678</strong></p>
+    </div>
+    <div class="otp-wrap">
+      <input class="otp-input" maxlength="1" type="tel" oninput="otpNext(this,0)" id="otp0">
+      <input class="otp-input" maxlength="1" type="tel" oninput="otpNext(this,1)" id="otp1">
+      <input class="otp-input" maxlength="1" type="tel" oninput="otpNext(this,2)" id="otp2">
+      <input class="otp-input" maxlength="1" type="tel" oninput="otpNext(this,3)" id="otp3">
+      <input class="otp-input" maxlength="1" type="tel" oninput="otpNext(this,4)" id="otp4">
+      <input class="otp-input" maxlength="1" type="tel" oninput="otpNext(this,5)" id="otp5">
+    </div>
+    <div class="otp-resend">沒收到？<a onclick="resendOTP()">重新發送</a> <span class="otp-timer" id="otp-timer">（60秒後可重發）</span></div>
+    <button class="main-btn" id="otp-btn" onclick="verifyOTP()" disabled style="margin-top:24px">驗證</button>
+  </div>
+
+  <!-- 3: 設定密碼 -->
+  <div class="page" id="page-3">
+    <div class="page-header">
+      <h2>設定密碼</h2>
+      <p>設定一組安全的密碼保護你的帳號</p>
+    </div>
+    <div class="form-group">
+      <div class="form-label">密碼</div>
+      <div class="input-wrap">
+        <input class="form-input" id="pwd-input" type="password" placeholder="至少 8 位，包含字母和數字" oninput="checkPwd(this)">
+        <span class="input-icon" onclick="togglePwd('pwd-input',this)">👁</span>
+      </div>
+      <div class="pwd-strength"><div class="pwd-bar" id="pwd-bar"></div></div>
+      <div class="pwd-hint" id="pwd-hint">請輸入密碼</div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">確認密碼</div>
+      <div class="input-wrap">
+        <input class="form-input" id="pwd2-input" type="password" placeholder="再次輸入密碼" oninput="checkPwd2(this)">
+        <span class="input-icon" onclick="togglePwd('pwd2-input',this)">👁</span>
+      </div>
+      <div class="error-msg" id="pwd2-error">兩次密碼不一致</div>
+    </div>
+    <button class="main-btn" id="pwd-btn" onclick="nextStep()" disabled>下一步</button>
+  </div>
+
+  <!-- 4: 基本資料 -->
+  <div class="page" id="page-4">
+    <div class="page-header">
+      <h2>填寫基本資料</h2>
+      <p>讓其他用戶更了解你</p>
+    </div>
+    <div class="form-group">
+      <div class="form-label">暱稱（對外顯示）</div>
+      <input class="form-input" id="name-input" type="text" placeholder="例如：Amy" maxlength="12" oninput="checkName(this)">
+      <div class="error-msg" id="name-error">暱稱需 2～12 個字</div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">年齡</div>
+      <input class="form-input" id="age-input" type="number" placeholder="18" min="18" max="60" oninput="checkAge(this)">
+      <div class="error-msg" id="age-error">需年滿 18 歲才能使用本平台</div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">所在縣市</div>
+      <select class="form-input" id="city-input">
+        <option value="">請選擇</option>
+        <option>台北市</option><option>新北市</option><option>桃園市</option>
+        <option>台中市</option><option>台南市</option><option>高雄市</option>
+        <option>新竹市</option><option>基隆市</option>
+      </select>
+    </div>
+    <button class="main-btn" id="profile-btn" onclick="nextStep()">下一步</button>
+  </div>
+
+  <!-- 5A: 陪玩夥伴 — 身份驗證 -->
+  <div class="page" id="page-5a">
+    <div class="page-header">
+      <h2>身份驗證</h2>
+      <p>為保障所有用戶安全，陪玩夥伴需完成以下驗證</p>
+    </div>
+    <div class="verify-steps">
+      <div class="verify-item" id="vi-id" onclick="doVerify('id')">
+        <div class="verify-icon">🪪</div>
+        <div class="verify-info">
+          <div class="verify-name">身份證驗證</div>
+          <div class="verify-sub">上傳身份證正反面</div>
+        </div>
+        <div class="verify-status vs-req" id="vs-id">必填</div>
+      </div>
+      <div class="verify-item" id="vi-face" onclick="doVerify('face')">
+        <div class="verify-icon">🤳</div>
+        <div class="verify-info">
+          <div class="verify-name">人臉辨識</div>
+          <div class="verify-sub">與身份證照片比對</div>
+        </div>
+        <div class="verify-status vs-req" id="vs-face">必填</div>
+      </div>
+      <div class="verify-item" id="vi-bank" onclick="doVerify('bank')">
+        <div class="verify-icon">🏦</div>
+        <div class="verify-info">
+          <div class="verify-name">銀行帳號（KYC）</div>
+          <div class="verify-sub">用於收款與提領</div>
+        </div>
+        <div class="verify-status vs-req" id="vs-bank">必填</div>
+      </div>
+    </div>
+    <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:14px;font-size:13px;color:rgba(251,191,36,.9);line-height:1.7;margin-bottom:16px">
+      ⚠️ 所有資料僅用於平台安全驗證，不會對外公開。審核通常在 1 個工作天內完成。
+    </div>
+    <button class="main-btn" id="verify-btn" onclick="nextStep()" disabled>完成驗證，下一步</button>
+  </div>
+
+  <!-- 5B: 陪玩夥伴 — 服務設定 -->
+  <div class="page" id="page-5b">
+    <div class="page-header">
+      <h2>服務設定</h2>
+      <p>設定你的服務類型和收費方式</p>
+    </div>
+    <div class="form-group">
+      <div class="form-label">服務類型（可多選）</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="ftag on" onclick="this.classList.toggle('on')">🍸 酒吧聊天</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">🎤 KTV伴唱</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">💬 聊天陪伴</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">💼 商務陪同</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">🎉 活動陪同</div>
+      </div>
+    </div>
+    <div class="fee-simple">
+      <div class="fee-row">
+        <span class="fee-label-txt">基本時費</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input class="fee-input-s" type="number" value="1200" min="500" step="100">
+          <span class="fee-unit-s">元／hr</span>
+        </div>
+      </div>
+      <div class="fee-row">
+        <span class="fee-label-txt">最短時數</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input class="fee-input-s" type="number" value="2" min="1" max="8" step="1">
+          <span class="fee-unit-s">小時</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">自我介紹（選填）</div>
+      <textarea class="form-input" rows="3" placeholder="簡單介紹自己，讓客人更了解你…" style="resize:none"></textarea>
+    </div>
+    <button class="main-btn" onclick="nextStep()">完成設定</button>
+  </div>
+
+  <!-- 5C: 客人端 — 偏好設定 -->
+  <div class="page" id="page-5c">
+    <div class="page-header">
+      <h2>設定偏好</h2>
+      <p>幫我們更了解你，找到最適合的玩伴</p>
+    </div>
+    <div class="form-group">
+      <div class="form-label">喜歡的活動（可多選）</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="ftag on" onclick="this.classList.toggle('on')">🍸 酒吧聊天</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">🎤 KTV</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">💬 聊天</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">💼 商務</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">🎉 活動</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">常去區域</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="ftag on" onclick="this.classList.toggle('on')">信義區</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">中山區</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">西門</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">大安區</div>
+        <div class="ftag" onclick="this.classList.toggle('on')">板橋</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">預算範圍</div>
+      <select class="form-input">
+        <option>$1,000 以下／hr</option>
+        <option selected>$1,000 ~ $2,000／hr</option>
+        <option>$2,000 以上／hr</option>
+      </select>
+    </div>
+    <button class="main-btn" onclick="nextStep()">完成設定</button>
+    <button class="sub-btn" onclick="nextStep()">稍後設定</button>
+  </div>
+
+  <!-- 6: 完成 -->
+  <div class="page success-page" id="page-6">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">註冊成功！</div>
+    <div class="success-sub" id="success-sub">歡迎加入陪你玩<br>你的帳號已建立完成</div>
+    <div class="profile-preview" id="profile-preview">
+      <div class="pp-av" id="pp-av">A</div>
+      <div>
+        <div class="pp-name" id="pp-name">Amy</div>
+        <div class="pp-sub" id="pp-sub">信義區・陪玩夥伴</div>
+        <div class="pp-badge">✓ 已驗證</div>
+      </div>
+    </div>
+    <button class="main-btn" id="go-btn" onclick="goToApp()">開始使用</button>
+  </div>
+
+</div><!-- /pages -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<style>
+.ftag{padding:8px 16px;border-radius:999px;border:1px solid var(--border);background:transparent;font-size:13px;color:var(--muted2);cursor:pointer;transition:.15s;font-family:'Noto Sans TC',sans-serif;display:inline-block}
+.ftag.on{background:var(--pink-dim);border-color:var(--pink);color:#ff9ad0}
+</style>
+
+<script>
+let currentStep = 0;
+let userRole = '';
+let verifyCount = 0;
+let otpTimerVal = 60;
+let otpInterval;
+
+// 步驟設定
+const STEPS = {
+  companion: [0,1,2,3,4,'5a','5b',6],
+  client:    [0,1,2,3,4,'5c',6],
+};
+let stepFlow = STEPS.companion;
+let stepIndex = 0;
+
+function updateStepDots(){
+  const dots = document.getElementById('step-dots');
+  const total = stepFlow.length;
+  dots.innerHTML = stepFlow.map((_,i) =>
+    `<div class="sdot ${i < stepIndex ? 'done' : i === stepIndex ? 'active' : ''}"></div>`
+  ).join('');
+  document.getElementById('step-back').style.visibility = stepIndex === 0 ? 'hidden' : 'visible';
+  const skip = document.getElementById('step-skip');
+  skip.textContent = stepIndex === 0 ? '' : '';
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>{
+    p.classList.remove('active','exit');
+  });
+  document.getElementById('page-'+id).classList.add('active');
+}
+
+function selectRole(role){
+  userRole = role;
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('role-'+role).classList.add('selected');
+  stepFlow = role === 'companion' ? STEPS.companion : STEPS.client;
+  setTimeout(()=>nextStep(), 400);
+}
+
+function nextStep(){
+  stepIndex++;
+  if(stepIndex >= stepFlow.length) return;
+  updateStepDots();
+  showPage(stepFlow[stepIndex]);
+}
+
+function goBack(){
+  if(stepIndex <= 0) { window.location.href='index.html'; return; }
+  stepIndex--;
+  updateStepDots();
+  showPage(stepFlow[stepIndex]);
+}
+
+function skipStep(){ nextStep() }
+
+// 手機驗證
+function validatePhone(el){
+  const v = el.value.replace(/\D/g,'');
+  const valid = /^09\d{8}$/.test(v);
+  document.getElementById('phone-btn').disabled = !valid;
+  document.getElementById('phone-error').classList.toggle('show', el.value.length >= 10 && !valid);
+}
+
+function sendOTP(){
+  const phone = document.getElementById('phone-input').value;
+  document.getElementById('otp-desc').innerHTML = `已發送 6 位數驗證碼到<br><strong style="color:var(--text)">${phone.slice(0,4)}-${phone.slice(4,7)}-${phone.slice(7)}</strong>`;
+  startOTPTimer();
+  nextStep();
+  setTimeout(()=>document.getElementById('otp0').focus(), 400);
+}
+
+function startOTPTimer(){
+  otpTimerVal = 60;
+  clearInterval(otpInterval);
+  otpInterval = setInterval(()=>{
+    otpTimerVal--;
+    const el = document.getElementById('otp-timer');
+    if(el) el.textContent = otpTimerVal > 0 ? `（${otpTimerVal}秒後可重發）` : '';
+    if(otpTimerVal <= 0) clearInterval(otpInterval);
+  }, 1000);
+}
+
+function resendOTP(){
+  if(otpTimerVal > 0) return;
+  startOTPTimer();
+  showToast('✅ 驗證碼已重新發送');
+}
+
+function otpNext(el, idx){
+  const v = el.value.replace(/\D/g,'');
+  el.value = v;
+  if(v && idx < 5) document.getElementById('otp'+(idx+1)).focus();
+  // 檢查是否填滿
+  const all = [0,1,2,3,4,5].map(i=>document.getElementById('otp'+i).value).join('');
+  document.getElementById('otp-btn').disabled = all.length < 6;
+}
+
+function verifyOTP(){
+  const code = [0,1,2,3,4,5].map(i=>document.getElementById('otp'+i).value).join('');
+  // 模擬驗證（實際需後端）
+  if(code.length === 6){
+    showToast('✅ 驗證成功！');
+    nextStep();
+  }
+}
+
+// 密碼強度
+function checkPwd(el){
+  const v = el.value;
+  let score = 0;
+  if(v.length >= 8) score++;
+  if(/[A-Za-z]/.test(v)) score++;
+  if(/\d/.test(v)) score++;
+  if(/[^A-Za-z\d]/.test(v)) score++;
+  const bar = document.getElementById('pwd-bar');
+  const hint = document.getElementById('pwd-hint');
+  const colors = ['','#ff4444','#fbbf24','#47ff92','#47ff92'];
+  const labels = ['','太短','普通','強','非常強'];
+  bar.style.width = (score * 25)+'%';
+  bar.style.background = colors[score];
+  hint.textContent = v.length > 0 ? '密碼強度：'+labels[score] : '請輸入密碼';
+  hint.style.color = colors[score] || 'var(--muted2)';
+  const v2 = document.getElementById('pwd2-input').value;
+  document.getElementById('pwd-btn').disabled = score < 2 || (v2 && v !== v2);
+}
+
+function checkPwd2(el){
+  const v = document.getElementById('pwd-input').value;
+  const match = el.value === v;
+  document.getElementById('pwd2-error').classList.toggle('show', el.value.length > 0 && !match);
+  document.getElementById('pwd-btn').disabled = !match || v.length < 8;
+}
+
+function togglePwd(id, iconEl){
+  const input = document.getElementById(id);
+  input.type = input.type === 'password' ? 'text' : 'password';
+  iconEl.textContent = input.type === 'password' ? '👁' : '🙈';
+}
+
+// 基本資料
+function checkName(el){
+  const valid = el.value.length >= 2;
+  document.getElementById('name-error').classList.toggle('show', el.value.length > 0 && !valid);
+}
+function checkAge(el){
+  const v = parseInt(el.value);
+  document.getElementById('age-error').classList.toggle('show', el.value.length > 0 && v < 18);
+}
+
+// 身份驗證模擬
+const verifyItems = {id:false, face:false, bank:false};
+function doVerify(type){
+  showToast('📤 上傳中…');
+  setTimeout(()=>{
+    verifyItems[type] = true;
+    const item = document.getElementById('vi-'+type);
+    const status = document.getElementById('vs-'+type);
+    item.classList.add('done');
+    status.className = 'verify-status vs-done';
+    status.textContent = '✓ 完成';
+    verifyCount = Object.values(verifyItems).filter(Boolean).length;
+    if(verifyCount >= 3){
+      document.getElementById('verify-btn').disabled = false;
+      showToast('✅ 所有驗證已完成！');
+    }
+  }, 1200);
+}
+
+function lineLogin(){
+  showToast('🟢 正在開啟 Line 登入…');
+  setTimeout(()=>{
+    // 模擬 Line 登入成功直接到完成頁
+    userRole = 'client';
+    stepFlow = STEPS.client;
+    stepIndex = stepFlow.length - 1;
+    updateStepDots();
+    updateSuccessPage();
+    showPage(6);
+  }, 1500);
+}
+
+function goToLogin(){
+  showToast('跳轉到登入頁…');
+  setTimeout(()=>window.location.href='app.html', 800);
+}
+
+function updateSuccessPage(){
+  const name = document.getElementById('name-input')?.value || 'PYW 用戶';
+  const city = document.getElementById('city-input')?.value || '台北市';
+  document.getElementById('pp-name').textContent = name || 'PYW 用戶';
+  document.getElementById('pp-av').textContent = (name||'P')[0].toUpperCase();
+  document.getElementById('pp-sub').textContent = city + '・' + (userRole==='companion'?'陪玩夥伴':'玩伴客人');
+  document.getElementById('success-sub').textContent = userRole==='companion'
+    ? '歡迎加入陪你玩！\n審核通過後即可開始接單。'
+    : '歡迎加入陪你玩！\n立即找到今晚的玩伴。';
+  document.getElementById('go-btn').textContent = userRole==='companion' ? '前往接單系統' : '立即找玩伴';
+}
+
+function goToApp(){
+  if(userRole === 'companion') window.location.href = 'app.html';
+  else window.location.href = 'find.html';
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// 初始化
+updateStepDots();
+</script>
+</body>
+</html>
