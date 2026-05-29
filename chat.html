@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>聊天室｜陪你玩</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#ff4fa3;
+  --pink-dim:rgba(255,79,163,.15);
+  --pink-glow:rgba(255,79,163,.3);
+  --bg:#070710;
+  --surface:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.09);
+  --text:#f0f0f0;
+  --muted:#888;
+  --green:#47ff92;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+/* ── 頂部 ── */
+.topbar{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;
+  background:rgba(7,7,16,.92);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  flex-shrink:0;
+  position:relative;
+}
+.back-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;font-size:18px;
+}
+.topbar-avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,#ff4fa3,#ff82c5);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:18px;flex-shrink:0;
+  position:relative;
+}
+.topbar-avatar::after{
+  content:'';position:absolute;bottom:1px;right:1px;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--green);border:2px solid var(--bg);
+}
+.topbar-info{flex:1;min-width:0}
+.topbar-name{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-status{font-size:12px;color:var(--green);margin-top:2px}
+.topbar-actions{display:flex;gap:8px}
+.icon-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;transition:.2s;
+}
+.icon-btn:active{background:var(--pink-dim)}
+
+/* ── 聊天列表側欄（桌面） ── */
+.layout{display:flex;flex:1;overflow:hidden}
+
+.sidebar{
+  width:280px;flex-shrink:0;
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.02);
+}
+.sidebar-header{
+  padding:16px;border-bottom:1px solid var(--border);
+  font-size:15px;font-weight:700;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sidebar-search{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar-search input{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:8px 12px;color:var(--text);font-size:13px;
+  font-family:'Noto Sans TC',sans-serif;
+}
+.sidebar-search input::placeholder{color:var(--muted)}
+.sidebar-search input:focus{outline:none;border-color:var(--pink)}
+.chat-list{flex:1;overflow-y:auto;padding:8px}
+.chat-list::-webkit-scrollbar{width:3px}
+.chat-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:999px}
+
+.chat-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 10px;border-radius:14px;cursor:pointer;transition:.15s;
+  position:relative;
+}
+.chat-item:hover{background:var(--surface)}
+.chat-item.active{background:var(--pink-dim);border:1px solid rgba(255,79,163,.2)}
+.chat-item .av{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:18px;position:relative;
+}
+.chat-item .av.online::after{
+  content:'';position:absolute;bottom:1px;right:1px;
+  width:9px;height:9px;border-radius:50%;
+  background:var(--green);border:2px solid var(--bg);
+}
+.av-a{background:linear-gradient(135deg,#ff4fa3,#ff82c5)}
+.av-k{background:linear-gradient(135deg,#a78bfa,#c4b5fd)}
+.av-m{background:linear-gradient(135deg,#f59e0b,#fcd34d)}
+.av-j{background:linear-gradient(135deg,#34d399,#6ee7b7)}
+.av-s{background:linear-gradient(135deg,#f87171,#fca5a5)}
+.chat-item-info{flex:1;min-width:0}
+.chat-item-top{display:flex;justify-content:space-between;align-items:baseline}
+.chat-item-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-item-time{font-size:11px;color:var(--muted);flex-shrink:0;margin-left:6px}
+.chat-item-preview{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.unread-badge{
+  background:var(--pink);color:white;font-size:11px;font-weight:700;
+  min-width:18px;height:18px;border-radius:999px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 4px;flex-shrink:0;
+}
+
+/* ── 聊天主區 ── */
+.chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+.msg-area{
+  flex:1;overflow-y:auto;
+  padding:16px 16px 8px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.msg-area::-webkit-scrollbar{width:3px}
+.msg-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:999px}
+
+/* 日期分隔 */
+.date-divider{
+  text-align:center;font-size:11px;color:var(--muted);
+  margin:6px 0;display:flex;align-items:center;gap:8px;
+}
+.date-divider::before,.date-divider::after{
+  content:'';flex:1;height:1px;background:var(--border);
+}
+
+/* 訊息 */
+.msg-row{display:flex;gap:8px;align-items:flex-end;max-width:100%}
+.msg-row.me{flex-direction:row-reverse}
+.msg-av{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+}
+.bubble{
+  max-width:72%;padding:10px 14px;border-radius:18px;
+  font-size:14px;line-height:1.65;word-break:break-word;
+  position:relative;
+}
+.bubble.them{
+  background:rgba(255,255,255,.09);
+  border:1px solid var(--border);
+  border-bottom-left-radius:4px;
+}
+.bubble.me{
+  background:var(--pink);
+  border-bottom-right-radius:4px;
+}
+.msg-meta{font-size:11px;color:var(--muted);margin-top:4px;display:flex;gap:4px;align-items:center}
+.msg-row.me .msg-meta{justify-content:flex-end}
+.read-tick{font-size:12px;color:#a0e0c0}
+
+/* 快速回覆 */
+.quick-replies{
+  padding:8px 16px;display:flex;gap:8px;overflow-x:auto;flex-shrink:0;
+}
+.quick-replies::-webkit-scrollbar{display:none}
+.qr-btn{
+  white-space:nowrap;padding:7px 14px;border-radius:999px;
+  border:1px solid var(--border);background:var(--surface);
+  font-size:13px;color:var(--text);cursor:pointer;transition:.15s;
+  font-family:'Noto Sans TC',sans-serif;flex-shrink:0;
+}
+.qr-btn:hover{border-color:var(--pink);color:var(--pink);background:var(--pink-dim)}
+
+/* 輸入列 */
+.input-bar{
+  padding:10px 12px;
+  border-top:1px solid var(--border);
+  display:flex;align-items:flex-end;gap:8px;
+  background:rgba(7,7,16,.95);
+  backdrop-filter:blur(20px);
+  flex-shrink:0;
+}
+.input-wrap{
+  flex:1;background:var(--surface);
+  border:1px solid var(--border);border-radius:18px;
+  display:flex;align-items:center;padding:4px 4px 4px 14px;
+  transition:.2s;
+}
+.input-wrap:focus-within{border-color:var(--pink)}
+.msg-input{
+  flex:1;background:none;border:none;color:var(--text);
+  font-size:15px;font-family:'Noto Sans TC',sans-serif;
+  resize:none;max-height:100px;line-height:1.5;
+  padding:6px 0;
+}
+.msg-input::placeholder{color:var(--muted)}
+.msg-input:focus{outline:none}
+.attach-btn{
+  width:34px;height:34px;border-radius:999px;
+  background:none;border:none;color:var(--muted);
+  font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.send-btn{
+  width:44px;height:44px;border-radius:50%;
+  background:var(--pink);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;transition:.2s;
+  box-shadow:0 0 16px var(--pink-glow);
+}
+.send-btn:active{transform:scale(.93)}
+
+/* SOS 浮動按鈕 */
+.sos-fab{
+  position:fixed;bottom:80px;right:16px;
+  width:50px;height:50px;border-radius:50%;
+  background:#ff3b3b;border:none;color:white;
+  font-size:12px;font-weight:900;cursor:pointer;
+  box-shadow:0 0 20px rgba(255,59,59,.5);
+  display:flex;align-items:center;justify-content:center;
+  z-index:100;transition:.2s;letter-spacing:.5px;
+}
+.sos-fab:active{transform:scale(.93)}
+
+/* RWD — 手機隱藏側欄 */
+@media(max-width:640px){
+  .sidebar{display:none}
+  .sos-fab{bottom:72px}
+}
+
+/* 正在輸入 */
+.typing-indicator{
+  display:flex;align-items:center;gap:4px;padding:10px 14px;
+  background:rgba(255,255,255,.09);border:1px solid var(--border);
+  border-radius:18px;border-bottom-left-radius:4px;
+  width:fit-content;
+}
+.typing-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--muted);
+  animation:bounce .9s infinite;
+}
+.typing-dot:nth-child(2){animation-delay:.15s}
+.typing-dot:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+/* 安全提示橫幅 */
+.safety-banner{
+  margin:0 16px 4px;padding:10px 14px;
+  background:rgba(71,255,146,.08);border:1px solid rgba(71,255,146,.2);
+  border-radius:12px;font-size:12px;color:#a0e0c0;
+  display:flex;align-items:center;gap:8px;
+}
+</style>
+</head>
+<body>
+
+<!-- 頂部 -->
+<div class="topbar">
+  <div class="back-btn">←</div>
+  <div class="topbar-avatar av-a">A</div>
+  <div class="topbar-info">
+    <div class="topbar-name">Amy ・ 信義區</div>
+    <div class="topbar-status">🟢 在線中・剛剛活躍</div>
+  </div>
+  <div class="topbar-actions">
+    <div class="icon-btn" title="查看檔案">👤</div>
+    <div class="icon-btn" title="更多">⋯</div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- 側欄聊天列表 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      訊息
+      <span style="font-size:12px;color:var(--muted);font-weight:400">3 則未讀</span>
+    </div>
+    <div class="sidebar-search">
+      <input type="text" placeholder="🔍 搜尋對話…">
+    </div>
+    <div class="chat-list">
+
+      <div class="chat-item active" onclick="switchChat('Amy','A','av-a','信義區・酒吧聊天','好！那約晚上 9 點，信義區見 🍸','剛剛')">
+        <div class="av av-a online">A</div>
+        <div class="chat-item-info">
+          <div class="chat-item-top">
+            <span class="chat-item-name">Amy</span>
+            <span class="chat-item-time">剛剛</span>
+          </div>
+          <div class="chat-item-preview">好！那約晚上 9 點 🍸</div>
+        </div>
+      </div>
+
+      <div class="chat-item" onclick="switchChat('Kiki','K','av-k','西門・KTV 伴唱','有人要一起唱歌嗎 🎤','3 分前')">
+        <div class="av av-k online">K</div>
+        <div class="chat-item-info">
+          <div class="chat-item-top">
+            <span class="chat-item-name">Kiki</span>
+            <span class="chat-item-time">3 分前</span>
+          </div>
+          <div class="chat-item-preview">有人要一起唱歌嗎 🎤</div>
+        </div>
+        <div class="unread-badge">2</div>
+      </div>
+
+      <div class="chat-item" onclick="switchChat('Mina','M','av-m','板橋・聊天陪伴','下班想找人聊天放鬆 ✨','12 分前')">
+        <div class="av av-m">M</div>
+        <div class="chat-item-info">
+          <div class="chat-item-top">
+            <span class="chat-item-name">Mina</span>
+            <span class="chat-item-time">12 分前</span>
+          </div>
+          <div class="chat-item-preview">下班想找人聊天放鬆 ✨</div>
+        </div>
+        <div class="unread-badge">1</div>
+      </div>
+
+      <div class="chat-item" onclick="switchChat('Joy','J','av-j','大安區・活動陪同','好的，報價是每小時 1,500 元','昨天')">
+        <div class="av av-j">J</div>
+        <div class="chat-item-info">
+          <div class="chat-item-top">
+            <span class="chat-item-name">Joy</span>
+            <span class="chat-item-time">昨天</span>
+          </div>
+          <div class="chat-item-preview">好的，報價是每小時 1,500 元</div>
+        </div>
+      </div>
+
+      <div class="chat-item" onclick="switchChat('Sara','S','av-s','中山區・商務陪同','收到！我會準時到的','昨天')">
+        <div class="av av-s">S</div>
+        <div class="chat-item-info">
+          <div class="chat-item-top">
+            <span class="chat-item-name">Sara</span>
+            <span class="chat-item-time">昨天</span>
+          </div>
+          <div class="chat-item-preview">收到！我會準時到的</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 聊天主區 -->
+  <div class="chat-main">
+
+    <!-- 安全提示 -->
+    <div class="safety-banner">
+      🔒 此對話受平台保護，請勿在外部聯繫或私下轉帳。
+    </div>
+
+    <!-- 訊息區 -->
+    <div class="msg-area" id="msg-area">
+
+      <div class="date-divider">今天</div>
+
+      <div class="msg-row">
+        <div class="msg-av av-a">A</div>
+        <div>
+          <div class="bubble them">嗨！看到你想找人一起去信義區喝酒 🍷</div>
+          <div class="msg-meta">20:41</div>
+        </div>
+      </div>
+
+      <div class="msg-row me">
+        <div>
+          <div class="bubble me">對啊！今晚有空嗎？大概 9 點左右</div>
+          <div class="msg-meta">20:42 <span class="read-tick">✓✓</span></div>
+        </div>
+      </div>
+
+      <div class="msg-row">
+        <div class="msg-av av-a">A</div>
+        <div>
+          <div class="bubble them">有空！我在信義區附近，30 分鐘可到<br>你想去哪家？</div>
+          <div class="msg-meta">20:43</div>
+        </div>
+      </div>
+
+      <div class="msg-row me">
+        <div>
+          <div class="bubble me">可以去 OUNCE 或是 Indulge，你有偏好嗎？</div>
+          <div class="msg-meta">20:44 <span class="read-tick">✓✓</span></div>
+        </div>
+      </div>
+
+      <div class="msg-row">
+        <div class="msg-av av-a">A</div>
+        <div>
+          <div class="bubble them">Indulge 不錯！上次去過，調酒很棒 🍸<br>那就約那邊吧</div>
+          <div class="msg-meta">20:46</div>
+        </div>
+      </div>
+
+      <div class="msg-row me">
+        <div>
+          <div class="bubble me">好！那約晚上 9 點，信義區 Indulge 見！</div>
+          <div class="msg-meta">20:47 <span class="read-tick">✓✓</span></div>
+        </div>
+      </div>
+
+      <div class="msg-row" id="typing-row" style="display:none">
+        <div class="msg-av av-a" id="typing-av">A</div>
+        <div>
+          <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 快速回覆 -->
+    <div class="quick-replies" id="quick-replies">
+      <button class="qr-btn" onclick="quickSend('好的！我確認了 ✓')">好的！確認</button>
+      <button class="qr-btn" onclick="quickSend('幾點方便？')">幾點方便？</button>
+      <button class="qr-btn" onclick="quickSend('可以先訂位嗎？')">可以先訂位嗎？</button>
+      <button class="qr-btn" onclick="quickSend('我用平台付款 💳')">平台付款</button>
+      <button class="qr-btn" onclick="quickSend('需要多少時間？')">需要多少時間？</button>
+    </div>
+
+    <!-- 輸入列 -->
+    <div class="input-bar">
+      <div class="input-wrap">
+        <button class="attach-btn" title="傳送圖片">📎</button>
+        <textarea class="msg-input" id="msg-input" placeholder="輸入訊息…" rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      </div>
+      <button class="send-btn" onclick="sendMsg()" title="傳送">➤</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- SOS 按鈕 -->
+<button class="sos-fab" onclick="triggerSOS()">SOS</button>
+
+<script>
+const msgArea = document.getElementById('msg-area');
+const input = document.getElementById('msg-input');
+let typingTimer;
+
+// 自動調整輸入高度
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,100)+'px';
+}
+
+// Enter 送出，Shift+Enter 換行
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}
+}
+
+function scrollBottom(){
+  msgArea.scrollTop=msgArea.scrollHeight;
+}
+
+// 送出訊息
+function sendMsg(){
+  const txt=input.value.trim();
+  if(!txt)return;
+  appendMsg(txt,'me');
+  input.value='';
+  input.style.height='auto';
+  simulateReply(txt);
+}
+
+function quickSend(txt){
+  appendMsg(txt,'me');
+  simulateReply(txt);
+}
+
+function appendMsg(txt,side,avClass,avText){
+  const now=new Date();
+  const time=now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+  const row=document.createElement('div');
+  row.className='msg-row'+(side==='me'?' me':'');
+
+  if(side==='them'){
+    const av=document.getElementById('typing-av');
+    const avC=av?av.className.replace('msg-av ',''):'av-a';
+    const avT=av?av.textContent:'A';
+    row.innerHTML=`
+      <div class="msg-av ${avClass||avC}">${avText||avT}</div>
+      <div>
+        <div class="bubble them">${escHtml(txt)}</div>
+        <div class="msg-meta">${time}</div>
+      </div>`;
+  } else {
+    row.innerHTML=`
+      <div>
+        <div class="bubble me">${escHtml(txt)}</div>
+        <div class="msg-meta">${time} <span class="read-tick">✓✓</span></div>
+      </div>`;
+  }
+  const typingRow=document.getElementById('typing-row');
+  msgArea.insertBefore(row,typingRow);
+  scrollBottom();
+}
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+// 模擬對方回覆
+const replies=[
+  '好的！沒問題 😊','了解，我等你！','太棒了～期待今晚 🌙',
+  '好喔！那待會見','收到 ✓','嗯嗯，我會準時到的！','好啊！那一起吧 🎉',
+  '當然可以！','OK！稍等我一下','沒問題，我現在出發了'
+];
+function simulateReply(userMsg){
+  const typingRow=document.getElementById('typing-row');
+  typingRow.style.display='flex';
+  scrollBottom();
+  clearTimeout(typingTimer);
+  typingTimer=setTimeout(()=>{
+    typingRow.style.display='none';
+    const r=replies[Math.floor(Math.random()*replies.length)];
+    appendMsg(r,'them');
+  },1400+Math.random()*800);
+}
+
+// 切換聊天對象
+function switchChat(name,initial,avClass,subtitle,lastMsg,time){
+  // 更新頂部
+  document.querySelector('.topbar-avatar').textContent=initial;
+  document.querySelector('.topbar-avatar').className='topbar-avatar '+avClass;
+  document.querySelector('.topbar-name').textContent=name+' ・ '+subtitle.split('・')[0];
+  // 更新 typing av
+  const av=document.getElementById('typing-av');
+  if(av){av.className='msg-av '+avClass;av.textContent=initial;}
+  // 清除訊息，加載新對話
+  document.getElementById('typing-row').style.display='none';
+  const rows=msgArea.querySelectorAll('.msg-row:not(#typing-row),.date-divider');
+  rows.forEach(r=>r.remove());
+  const div=document.createElement('div');
+  div.className='date-divider';div.textContent='今天';
+  msgArea.insertBefore(div,document.getElementById('typing-row'));
+  // 加一條對方訊息
+  setTimeout(()=>{
+    appendMsg(lastMsg,'them',avClass,initial);
+  },200);
+  // 更新側欄 active
+  document.querySelectorAll('.chat-item').forEach(el=>{
+    el.classList.remove('active');
+    const badge=el.querySelector('.unread-badge');
+    if(badge&&el.querySelector('.chat-item-name').textContent===name){badge.remove()}
+  });
+  event.currentTarget.classList.add('active');
+  scrollBottom();
+}
+
+// SOS
+function triggerSOS(){
+  if(confirm('⚠️ 確定要觸發 SOS 緊急回報？\n平台將立即通知你的緊急聯絡人並記錄位置。')){
+    alert('🚨 SOS 已送出！\n緊急聯絡人已收到通知。\n請保持手機開機，平台客服將在 1 分鐘內聯繫你。');
+  }
+}
+
+scrollBottom();
+</script>
+</body>
+</html>
