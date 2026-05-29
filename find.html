@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>找玩伴｜陪你玩</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --pink:#ff4fa3;--pink2:#ff82c5;
+  --pink-dim:rgba(255,79,163,.12);--pink-border:rgba(255,79,163,.3);
+  --green:#47ff92;--amber:#fbbf24;--blue:#60a5fa;
+  --bg:#07070f;--card:rgba(255,255,255,.06);--card2:rgba(255,255,255,.03);
+  --border:rgba(255,255,255,.09);--border2:rgba(255,255,255,.15);
+  --text:#f0f0f0;--muted:#666;--muted2:#999;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;overflow-x:hidden}
+
+/* 背景光暈 */
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(255,79,163,.15),transparent),
+             radial-gradient(ellipse 40% 40% at 90% 90%,rgba(96,165,250,.08),transparent);
+  pointer-events:none;z-index:0}
+
+.wrap{position:relative;z-index:1;padding-bottom:90px}
+
+/* ── 頂部 ── */
+.topbar{
+  padding:14px 16px 12px;
+  display:flex;align-items:center;gap:10px;
+  background:rgba(7,7,15,.92);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:50;
+}
+.back-btn{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;text-decoration:none;color:var(--text)}
+.topbar-title{flex:1}
+.topbar-title h1{font-size:17px;font-weight:900}
+.topbar-title p{font-size:11px;color:var(--green);margin-top:2px}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);margin-right:4px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.top-icons{display:flex;gap:8px}
+.icon-btn{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:.15s;position:relative}
+.icon-btn:active{background:var(--pink-dim)}
+
+/* ── 搜尋列 ── */
+.search-wrap{padding:14px 16px 0}
+.search-box{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:16px;padding:12px 16px;
+  transition:.2s;
+}
+.search-box:focus-within{border-color:var(--pink);background:rgba(255,79,163,.06)}
+.search-icon{font-size:18px;flex-shrink:0}
+.search-input{flex:1;background:none;border:none;color:var(--text);font-size:15px;font-family:'Noto Sans TC',sans-serif}
+.search-input::placeholder{color:var(--muted2)}
+.search-input:focus{outline:none}
+.search-clear{font-size:16px;color:var(--muted2);cursor:pointer;flex-shrink:0;display:none}
+
+/* ── 篩選標籤列 ── */
+.filter-scroll{
+  display:flex;gap:8px;overflow-x:auto;
+  padding:12px 16px;
+}
+.filter-scroll::-webkit-scrollbar{display:none}
+.filter-chip{
+  white-space:nowrap;padding:8px 16px;border-radius:999px;
+  border:1px solid var(--border2);background:var(--card2);
+  font-size:13px;color:var(--muted2);cursor:pointer;transition:.15s;
+  font-family:'Noto Sans TC',sans-serif;flex-shrink:0;
+}
+.filter-chip.active{background:var(--pink-dim);border-color:var(--pink);color:#ff9ad0;font-weight:600}
+.filter-chip:active{transform:scale(.95)}
+
+/* ── 進階篩選面板 ── */
+.filter-panel{
+  margin:0 16px 14px;padding:16px;
+  background:var(--card);border:1px solid var(--border);border-radius:18px;
+  display:none;
+}
+.filter-panel.open{display:block}
+.filter-row{margin-bottom:14px}
+.filter-row:last-child{margin-bottom:0}
+.filter-label{font-size:12px;color:var(--muted2);margin-bottom:8px;letter-spacing:.5px}
+.filter-tags{display:flex;gap:6px;flex-wrap:wrap}
+.ftag{padding:6px 14px;border-radius:999px;border:1px solid var(--border);background:transparent;font-size:13px;color:var(--muted2);cursor:pointer;transition:.15s;font-family:'Noto Sans TC',sans-serif}
+.ftag.on{background:var(--pink-dim);border-color:var(--pink);color:#ff9ad0}
+.price-range{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted2)}
+.price-range input[type=range]{flex:1;accent-color:var(--pink)}
+.price-val{color:var(--pink);font-weight:700;min-width:60px;text-align:right}
+.filter-apply{width:100%;padding:12px;border-radius:12px;background:var(--pink);border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin-top:14px;transition:.2s}
+.filter-apply:active{opacity:.85}
+
+/* ── 區域快選 ── */
+.area-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 16px 14px}
+.area-scroll::-webkit-scrollbar{display:none}
+.area-btn{
+  white-space:nowrap;padding:7px 14px;border-radius:999px;
+  border:1px solid var(--border);background:var(--card2);
+  font-size:12px;color:var(--muted2);cursor:pointer;transition:.15s;
+  font-family:'Noto Sans TC',sans-serif;flex-shrink:0;
+}
+.area-btn.active{background:rgba(96,165,250,.1);border-color:var(--blue);color:var(--blue)}
+
+/* ── 結果標題 ── */
+.result-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px 12px;
+}
+.result-count{font-size:13px;color:var(--muted2)}
+.result-count span{color:var(--pink);font-weight:700}
+.sort-btn{font-size:12px;color:var(--muted2);cursor:pointer;display:flex;align-items:center;gap:4px;background:var(--card2);padding:6px 12px;border-radius:999px;border:1px solid var(--border)}
+
+/* ── 玩伴卡片 ── */
+.cards-grid{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+
+.companion-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:22px;padding:18px;
+  display:flex;gap:14px;cursor:pointer;transition:.18s;
+  position:relative;overflow:hidden;
+}
+.companion-card::before{content:'';position:absolute;inset:0;background:var(--pink-dim);opacity:0;transition:.18s;border-radius:22px}
+.companion-card:active::before{opacity:1}
+.companion-card:active{transform:scale(.99)}
+
+/* 頭像 */
+.card-av{
+  width:72px;height:72px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:28px;position:relative;
+}
+.av-online::after{content:'';position:absolute;bottom:2px;right:2px;width:14px;height:14px;border-radius:50%;background:var(--green);border:2.5px solid var(--bg)}
+.av1{background:linear-gradient(135deg,#ff4fa3,#ff82c5)}
+.av2{background:linear-gradient(135deg,#a78bfa,#c4b5fd)}
+.av3{background:linear-gradient(135deg,#f59e0b,#fcd34d)}
+.av4{background:linear-gradient(135deg,#34d399,#6ee7b7)}
+.av5{background:linear-gradient(135deg,#f87171,#fca5a5)}
+.av6{background:linear-gradient(135deg,#60a5fa,#93c5fd)}
+
+/* 卡片內容 */
+.card-body{flex:1;min-width:0}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
+.card-name{font-size:17px;font-weight:800}
+.card-rating{display:flex;align-items:center;gap:3px;font-size:13px;color:var(--amber);font-weight:700}
+.card-location{font-size:12px;color:var(--muted2);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.ctag{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
+.ctag-type{background:var(--pink-dim);color:#ff9ad0;border:1px solid var(--pink-border)}
+.ctag-avail{background:rgba(71,255,146,.08);color:var(--green);border:1px solid rgba(71,255,146,.2)}
+.ctag-area{background:rgba(96,165,250,.08);color:var(--blue);border:1px solid rgba(96,165,250,.2)}
+.card-bottom{display:flex;align-items:center;justify-content:space-between}
+.card-price{font-size:15px;font-weight:800;color:var(--text)}
+.card-price span{font-size:11px;color:var(--muted2);font-weight:400}
+.card-response{font-size:11px;color:var(--muted2)}
+.book-btn{
+  padding:9px 18px;border-radius:12px;
+  background:var(--pink);border:none;color:white;
+  font-size:13px;font-weight:700;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;transition:.15s;
+  box-shadow:0 0 12px rgba(255,79,163,.3);
+}
+.book-btn:active{transform:scale(.95)}
+
+/* 特色標籤 */
+.card-badge{
+  position:absolute;top:14px;right:14px;
+  padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;
+}
+.badge-hot{background:rgba(251,113,133,.15);color:#fb7185;border:1px solid rgba(251,113,133,.3)}
+.badge-new{background:rgba(96,165,250,.12);color:var(--blue);border:1px solid rgba(96,165,250,.25)}
+.badge-top{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.25)}
+
+/* 在線狀態橫幅 */
+.online-banner{
+  margin:0 16px 14px;padding:12px 16px;border-radius:14px;
+  background:rgba(71,255,146,.06);border:1px solid rgba(71,255,146,.15);
+  display:flex;align-items:center;gap:10px;font-size:13px;color:#a0e0c0;
+}
+
+/* 空狀態 */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted2)}
+.empty-icon{font-size:48px;margin-bottom:16px}
+
+/* 底部導航 */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(7,7,15,.96);border-top:1px solid var(--border);backdrop-filter:blur(20px);display:flex;align-items:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;color:var(--muted);font-size:10px;font-weight:500;transition:.15s}
+.nav-item.active{color:var(--pink)}
+.nav-icon{font-size:22px;line-height:1}
+
+/* Toast */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(15,15,30,.96);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:300;transition:.3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* Line FAB */
+.line-fab{position:fixed;bottom:144px;left:16px;width:50px;height:50px;border-radius:50%;background:#06C755;display:flex;align-items:center;justify-content:center;z-index:99;text-decoration:none;box-shadow:0 0 0 5px rgba(6,199,85,.12),0 0 16px rgba(6,199,85,.3);transition:.2s}
+.line-fab:active{transform:scale(.92)}
+
+/* SOS FAB */
+.sos-fab{position:fixed;bottom:144px;right:16px;width:50px;height:50px;border-radius:50%;background:#ff3b3b;border:none;color:white;font-size:12px;font-weight:900;cursor:pointer;box-shadow:0 0 0 5px rgba(255,59,59,.12),0 0 16px rgba(255,59,59,.3);z-index:99;font-family:'Noto Sans TC',sans-serif;transition:.2s;animation:sos 2.5s infinite}
+@keyframes sos{0%,100%{box-shadow:0 0 0 5px rgba(255,59,59,.12),0 0 16px rgba(255,59,59,.3)}50%{box-shadow:0 0 0 10px rgba(255,59,59,.04),0 0 20px rgba(255,59,59,.2)}}
+.sos-fab:active{transform:scale(.92)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- 頂部 -->
+<div class="topbar">
+  <a class="back-btn" href="index.html">←</a>
+  <div class="topbar-title">
+    <h1>找玩伴</h1>
+    <p><span class="live-dot"></span>今晚 <strong>42 位</strong>在線</p>
+  </div>
+  <div class="top-icons">
+    <div class="icon-btn" id="filter-toggle-btn" onclick="toggleFilterPanel()" title="進階篩選">⚙️</div>
+    <div class="icon-btn" onclick="toggleMap()" title="地圖模式">🗺</div>
+  </div>
+</div>
+
+<!-- 搜尋列 -->
+<div class="search-wrap">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="search-input" type="text" placeholder="搜尋名字、服務類型、區域…" oninput="doSearch(this.value)">
+    <span class="search-clear" id="search-clear" onclick="clearSearch()">✕</span>
+  </div>
+</div>
+
+<!-- 服務類型篩選 -->
+<div class="filter-scroll" id="type-filters">
+  <div class="filter-chip active" onclick="filterType(this,'全部')">全部</div>
+  <div class="filter-chip" onclick="filterType(this,'酒吧聊天')">🍸 酒吧聊天</div>
+  <div class="filter-chip" onclick="filterType(this,'KTV伴唱')">🎤 KTV伴唱</div>
+  <div class="filter-chip" onclick="filterType(this,'聊天陪伴')">💬 聊天陪伴</div>
+  <div class="filter-chip" onclick="filterType(this,'商務陪同')">💼 商務陪同</div>
+  <div class="filter-chip" onclick="filterType(this,'活動陪同')">🎉 活動陪同</div>
+</div>
+
+<!-- 進階篩選面板 -->
+<div class="filter-panel" id="filter-panel">
+  <div class="filter-row">
+    <div class="filter-label">評分要求</div>
+    <div class="filter-tags" id="rating-filters">
+      <div class="ftag" onclick="toggleFTag(this)">4.5 以上</div>
+      <div class="ftag" onclick="toggleFTag(this)">4.8 以上</div>
+      <div class="ftag on" onclick="toggleFTag(this)">任意評分</div>
+    </div>
+  </div>
+  <div class="filter-row">
+    <div class="filter-label">可到時段</div>
+    <div class="filter-tags">
+      <div class="ftag" onclick="toggleFTag(this)">現在可到</div>
+      <div class="ftag on" onclick="toggleFTag(this)">今晚</div>
+      <div class="ftag" onclick="toggleFTag(this)">明天</div>
+      <div class="ftag" onclick="toggleFTag(this)">預約指定日</div>
+    </div>
+  </div>
+  <div class="filter-row">
+    <div class="filter-label">時費上限：<span id="price-label" style="color:var(--pink);font-weight:700">$2,000／hr</span></div>
+    <div class="price-range">
+      <span>$800</span>
+      <input type="range" min="800" max="5000" value="2000" step="100" oninput="updatePrice(this.value)">
+      <span>$5,000</span>
+    </div>
+  </div>
+  <div class="filter-row">
+    <div class="filter-label">驗證狀態</div>
+    <div class="filter-tags">
+      <div class="ftag on" onclick="toggleFTag(this)">✅ 實名驗證</div>
+      <div class="ftag" onclick="toggleFTag(this)">全部</div>
+    </div>
+  </div>
+  <button class="filter-apply" onclick="applyFilter()">套用篩選</button>
+</div>
+
+<!-- 區域快選 -->
+<div class="area-scroll" id="area-filters">
+  <div class="area-btn active" onclick="filterArea(this,'全台')">📍 全台</div>
+  <div class="area-btn" onclick="filterArea(this,'信義區')">信義區</div>
+  <div class="area-btn" onclick="filterArea(this,'中山區')">中山區</div>
+  <div class="area-btn" onclick="filterArea(this,'西門')">西門</div>
+  <div class="area-btn" onclick="filterArea(this,'大安區')">大安區</div>
+  <div class="area-btn" onclick="filterArea(this,'松山')">松山</div>
+  <div class="area-btn" onclick="filterArea(this,'板橋')">板橋</div>
+  <div class="area-btn" onclick="filterArea(this,'內湖')">內湖</div>
+  <div class="area-btn" onclick="filterArea(this,'北投')">北投</div>
+</div>
+
+<!-- 在線橫幅 -->
+<div class="online-banner">
+  <span style="font-size:20px">🟢</span>
+  <span>信義區現在有 <strong style="color:var(--green)">8 位</strong>玩伴在線，平均 <strong style="color:var(--green)">3 分鐘</strong>回覆</span>
+</div>
+
+<!-- 結果 -->
+<div class="result-header">
+  <div class="result-count">找到 <span id="result-count">6</span> 位玩伴</div>
+  <div class="sort-btn" onclick="toggleSort()">排序：<span id="sort-label">最近在線</span> ↕</div>
+</div>
+
+<!-- 玩伴卡片 -->
+<div class="cards-grid" id="cards-grid"></div>
+
+</div>
+
+<!-- FABs -->
+<a class="line-fab" href="https://lin.ee/yuS2ZnE" target="_blank" title="Line 客服">
+  <svg viewBox="0 0 24 24" fill="white" width="26" height="26"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.630 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61V9.863h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.630 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.590.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+</a>
+<button class="sos-fab" onclick="window.location.href='sos.html'">SOS</button>
+
+<!-- 底部導航 -->
+<div class="bottom-nav">
+  <div class="nav-item" onclick="window.location.href='index.html'"><div class="nav-icon">🏠</div>首頁</div>
+  <div class="nav-item active"><div class="nav-icon">🔍</div>找玩伴</div>
+  <div class="nav-item" onclick="window.location.href='chat.html'"><div class="nav-icon">💬</div>訊息</div>
+  <div class="nav-item" onclick="window.location.href='payment.html'"><div class="nav-icon">💰</div>訂單</div>
+  <div class="nav-item" onclick="window.location.href='app.html'"><div class="nav-icon">👤</div>我的</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// 資料
+const DATA = [
+  {id:1, name:'Amy', av:'A', avClass:'av1', area:'信義區', types:['酒吧聊天','KTV伴唱'], price:1200, rating:4.9, reviews:28, response:'3 分鐘', avail:'現在可到', badge:'hot', verified:true, online:true},
+  {id:2, name:'Kiki', av:'K', avClass:'av2', area:'西門', types:['KTV伴唱','聊天陪伴'], price:1000, rating:4.8, reviews:19, response:'5 分鐘', avail:'今晚可約', badge:'top', verified:true, online:true},
+  {id:3, name:'Mina', av:'M', avClass:'av3', area:'板橋', types:['聊天陪伴'], price:900, rating:4.9, reviews:35, response:'剛剛活躍', avail:'現在可到', badge:'', verified:true, online:true},
+  {id:4, name:'Joy', av:'J', avClass:'av4', area:'大安區', types:['活動陪同','商務陪同'], price:1800, rating:4.7, reviews:12, response:'10 分鐘', avail:'今晚可約', badge:'new', verified:true, online:true},
+  {id:5, name:'Sara', av:'S', avClass:'av5', area:'中山區', types:['商務陪同','酒吧聊天'], price:2000, rating:4.6, reviews:8, response:'15 分鐘', avail:'預約制', badge:'', verified:true, online:false},
+  {id:6, name:'Luna', av:'L', avClass:'av6', area:'松山', types:['聊天陪伴','KTV伴唱'], price:950, rating:5.0, reviews:6, response:'剛剛活躍', avail:'現在可到', badge:'new', verified:true, online:true},
+];
+
+let filtered = [...DATA];
+let currentType = '全部';
+let currentArea = '全台';
+let searchQ = '';
+let sortMode = 0;
+const sortModes = ['最近在線','評分最高','價格最低'];
+
+function renderCards(data){
+  const grid = document.getElementById('cards-grid');
+  document.getElementById('result-count').textContent = data.length;
+  if(data.length === 0){
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><p>找不到符合條件的玩伴<br>試試調整篩選條件</p></div>`;
+    return;
+  }
+  grid.innerHTML = data.map(d => `
+    <div class="companion-card" onclick="bookCompanion('${d.name}')">
+      ${d.badge === 'hot' ? '<div class="card-badge badge-hot">🔥 熱門</div>' :
+        d.badge === 'new' ? '<div class="card-badge badge-new">✨ 新加入</div>' :
+        d.badge === 'top' ? '<div class="card-badge badge-top">⭐ 高評分</div>' : ''}
+      <div class="card-av ${d.avClass} ${d.online ? 'av-online' : ''}">${d.av}</div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-name">${d.name}</div>
+          <div class="card-rating">★ ${d.rating} <span style="color:var(--muted2);font-weight:400">(${d.reviews})</span></div>
+        </div>
+        <div class="card-location">📍 ${d.area} ・ ${d.online ? '<span style="color:var(--green)">在線中</span>' : '<span style="color:var(--muted2)">離線</span>'} ・ 回覆約 ${d.response}</div>
+        <div class="card-tags">
+          ${d.types.map(t=>`<span class="ctag ctag-type">${t}</span>`).join('')}
+          <span class="ctag ctag-avail">${d.avail}</span>
+          ${d.verified ? '<span class="ctag ctag-area">✓ 實名驗證</span>' : ''}
+        </div>
+        <div class="card-bottom">
+          <div class="card-price">$${d.price.toLocaleString()} <span>元／hr</span></div>
+          <button class="book-btn" onclick="event.stopPropagation();bookCompanion('${d.name}')">立即預約</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function applyAll(){
+  let res = DATA.filter(d => {
+    const matchType = currentType === '全部' || d.types.includes(currentType);
+    const matchArea = currentArea === '全台' || d.area === currentArea;
+    const matchQ = !searchQ || d.name.includes(searchQ) || d.types.some(t=>t.includes(searchQ)) || d.area.includes(searchQ);
+    return matchType && matchArea && matchQ;
+  });
+  // 排序
+  if(sortMode === 1) res = res.sort((a,b) => b.rating - a.rating);
+  else if(sortMode === 2) res = res.sort((a,b) => a.price - b.price);
+  else res = res.sort((a,b) => (b.online?1:0) - (a.online?1:0));
+  filtered = res;
+  renderCards(res);
+}
+
+function filterType(el, type){
+  document.querySelectorAll('#type-filters .filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  currentType = type;
+  applyAll();
+}
+
+function filterArea(el, area){
+  document.querySelectorAll('#area-filters .area-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  currentArea = area;
+  applyAll();
+}
+
+function doSearch(q){
+  searchQ = q.trim();
+  document.getElementById('search-clear').style.display = q ? 'block' : 'none';
+  applyAll();
+}
+function clearSearch(){
+  document.getElementById('search-input').value = '';
+  searchQ = '';
+  document.getElementById('search-clear').style.display = 'none';
+  applyAll();
+}
+
+function toggleFTag(el){ el.classList.toggle('on') }
+
+function updatePrice(v){
+  document.getElementById('price-label').textContent = '$'+parseInt(v).toLocaleString()+'／hr';
+}
+
+function toggleFilterPanel(){
+  const panel = document.getElementById('filter-panel');
+  panel.classList.toggle('open');
+  document.getElementById('filter-toggle-btn').textContent = panel.classList.contains('open') ? '✕' : '⚙️';
+}
+
+function applyFilter(){
+  toggleFilterPanel();
+  applyAll();
+  showToast('✅ 篩選已套用');
+}
+
+function toggleSort(){
+  sortMode = (sortMode + 1) % 3;
+  document.getElementById('sort-label').textContent = sortModes[sortMode];
+  applyAll();
+  showToast('排序：'+sortModes[sortMode]);
+}
+
+function toggleMap(){
+  showToast('🗺 地圖模式開發中，敬請期待！');
+}
+
+function bookCompanion(name){
+  showToast('💬 正在開啟與 '+name+' 的對話…');
+  setTimeout(()=>window.location.href='chat.html', 1000);
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// 初始渲染
+renderCards(DATA);
+</script>
+</body>
+</html>
