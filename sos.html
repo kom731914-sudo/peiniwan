@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>安全機制｜陪你玩</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#ff4fa3;
+  --pink-dim:rgba(255,79,163,.13);
+  --pink-border:rgba(255,79,163,.3);
+  --red:#ff3b3b;
+  --red-dim:rgba(255,59,59,.12);
+  --red-border:rgba(255,59,59,.3);
+  --green:#47ff92;
+  --green-dim:rgba(71,255,146,.1);
+  --amber:#fbbf24;
+  --amber-dim:rgba(251,191,36,.1);
+  --bg:#070710;
+  --surface:rgba(255,255,255,.06);
+  --surface2:rgba(255,255,255,.03);
+  --border:rgba(255,255,255,.09);
+  --text:#f0f0f0;
+  --muted:#888;
+}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:60px}
+
+.topbar{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;
+  background:rgba(7,7,16,.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:50;
+}
+.topbar h1{font-size:18px;font-weight:900}
+.topbar p{font-size:12px;color:var(--muted);margin-top:2px}
+.back-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;flex-shrink:0;
+}
+
+.wrap{padding:16px;display:flex;flex-direction:column;gap:14px}
+
+/* ── SOS 大按鈕 ── */
+.sos-hero{
+  background:var(--red-dim);
+  border:1px solid var(--red-border);
+  border-radius:24px;padding:24px 20px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.sos-hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 60%, rgba(255,59,59,.08), transparent 70%);
+  pointer-events:none;
+}
+.sos-title{font-size:15px;color:#ff9a9a;margin-bottom:6px}
+.sos-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6}
+.sos-btn{
+  width:140px;height:140px;border-radius:50%;
+  background:var(--red);border:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  margin:0 auto;font-family:'Noto Sans TC',sans-serif;
+  box-shadow:0 0 0 12px rgba(255,59,59,.15), 0 0 0 24px rgba(255,59,59,.07);
+  transition:.2s;position:relative;
+}
+.sos-btn:active{transform:scale(.95)}
+.sos-btn-text{font-size:36px;font-weight:900;color:white;line-height:1}
+.sos-btn-sub{font-size:12px;color:rgba(255,255,255,.8);margin-top:4px}
+.sos-pulse{
+  position:absolute;inset:-20px;border-radius:50%;
+  border:2px solid rgba(255,59,59,.4);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%{transform:scale(1);opacity:.8}
+  70%{transform:scale(1.15);opacity:0}
+  100%{transform:scale(1.15);opacity:0}
+}
+.sos-actions{display:flex;gap:10px;margin-top:20px}
+.sos-quick{
+  flex:1;padding:12px 8px;border-radius:14px;
+  border:1px solid var(--red-border);background:var(--red-dim);
+  color:#ff9a9a;font-size:13px;font-weight:500;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;transition:.15s;text-align:center;
+}
+.sos-quick:active{background:rgba(255,59,59,.2)}
+
+/* ── 行程安全 ── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:18px;
+}
+.card-title{
+  font-size:14px;font-weight:700;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.status-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.status-row:last-child{border-bottom:none}
+.status-left{display:flex;align-items:center;gap:10px}
+.status-icon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  flex-shrink:0;
+}
+.icon-green{background:var(--green-dim);border:1px solid rgba(71,255,146,.2)}
+.icon-amber{background:var(--amber-dim);border:1px solid rgba(251,191,36,.2)}
+.icon-red{background:var(--red-dim);border:1px solid var(--red-border)}
+.icon-blue{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2)}
+.status-info{}
+.status-name{font-size:14px;font-weight:500}
+.status-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.status-badge{
+  font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;flex-shrink:0;
+}
+.badge-on{background:var(--green-dim);color:var(--green);border:1px solid rgba(71,255,146,.25)}
+.badge-off{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.badge-warn{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,.25)}
+
+/* 開關 */
+.switch{position:relative;width:48px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.sw{position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:999px;cursor:pointer;transition:.25s}
+.sw:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:white;border-radius:50%;transition:.25s}
+input:checked+.sw{background:var(--green)}
+input:checked+.sw:before{transform:translateX(22px)}
+
+/* ── 緊急聯絡人 ── */
+.contact-card{
+  display:flex;align-items:center;gap:12px;
+  padding:12px;border-radius:14px;
+  background:var(--surface2);border:1px solid var(--border);
+  margin-bottom:10px;
+}
+.contact-av{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;
+}
+.contact-info{flex:1;min-width:0}
+.contact-name{font-size:15px;font-weight:600}
+.contact-rel{font-size:12px;color:var(--muted);margin-top:2px}
+.contact-phone{font-size:13px;color:#60a5fa;margin-top:2px}
+.contact-actions{display:flex;gap:6px;flex-shrink:0}
+.icon-action{
+  width:34px;height:34px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;cursor:pointer;transition:.15s;
+}
+.icon-action:active{background:var(--pink-dim)}
+.add-contact{
+  width:100%;padding:12px;border-radius:14px;
+  border:1px dashed rgba(255,255,255,.2);background:transparent;
+  color:var(--muted);font-size:14px;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;transition:.15s;
+  margin-top:4px;
+}
+.add-contact:hover{border-color:var(--pink);color:var(--pink)}
+
+/* ── 位置分享 ── */
+.map-preview{
+  height:160px;border-radius:16px;overflow:hidden;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  position:relative;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+.map-placeholder{text-align:center;color:var(--muted)}
+.map-placeholder .map-icon{font-size:32px;margin-bottom:8px}
+.map-placeholder p{font-size:13px}
+.location-dot{
+  position:absolute;width:16px;height:16px;
+  border-radius:50%;background:var(--pink);
+  box-shadow:0 0 0 4px rgba(255,79,163,.3);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:loc-pulse 2s infinite;
+}
+@keyframes loc-pulse{
+  0%{box-shadow:0 0 0 4px rgba(255,79,163,.3)}
+  50%{box-shadow:0 0 0 10px rgba(255,79,163,.05)}
+  100%{box-shadow:0 0 0 4px rgba(255,79,163,.3)}
+}
+.share-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.share-btn{
+  padding:12px;border-radius:14px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text);font-size:13px;
+  cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+  text-align:center;transition:.15s;
+}
+.share-btn:hover{border-color:var(--pink);color:var(--pink);background:var(--pink-dim)}
+.share-btn.active-btn{background:var(--green-dim);border-color:rgba(71,255,146,.3);color:var(--green)}
+
+/* ── 行程打卡 ── */
+.checkin-list{display:flex;flex-direction:column;gap:0}
+.checkin-item{
+  display:flex;gap:14px;align-items:flex-start;
+  padding:12px 0;position:relative;
+}
+.checkin-item:not(:last-child)::after{
+  content:'';position:absolute;left:17px;top:38px;bottom:0;
+  width:1px;background:var(--border);
+}
+.checkin-dot{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  position:relative;z-index:1;
+}
+.dot-done{background:var(--green-dim);border:1px solid rgba(71,255,146,.3)}
+.dot-now{background:var(--amber-dim);border:2px solid var(--amber);animation:dot-blink 1.5s infinite}
+.dot-todo{background:var(--surface2);border:1px solid var(--border)}
+@keyframes dot-blink{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.3)}50%{box-shadow:0 0 0 6px rgba(251,191,36,.1)}}
+.checkin-info{flex:1}
+.checkin-name{font-size:14px;font-weight:600}
+.checkin-time{font-size:12px;color:var(--muted);margin-top:2px}
+.checkin-action{
+  padding:7px 14px;border-radius:999px;
+  border:1px solid var(--border);background:var(--surface);
+  color:var(--text);font-size:13px;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;transition:.15s;flex-shrink:0;
+}
+.checkin-action:hover{border-color:var(--green);color:var(--green)}
+
+/* ── AI 風險 ── */
+.risk-meter{
+  display:flex;align-items:center;gap:14px;
+  padding:14px;background:var(--green-dim);
+  border:1px solid rgba(71,255,146,.2);border-radius:16px;
+  margin-bottom:12px;
+}
+.risk-score{font-size:36px;font-weight:900;color:var(--green);line-height:1;flex-shrink:0}
+.risk-info{}
+.risk-label{font-size:15px;font-weight:700;color:var(--green)}
+.risk-sub{font-size:12px;color:rgba(71,255,146,.7);margin-top:3px}
+.risk-items{display:flex;flex-direction:column;gap:8px}
+.risk-item{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;color:var(--muted);
+}
+.risk-item .ri-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ri-ok{background:var(--green)}
+.ri-warn{background:var(--amber)}
+.ri-bad{background:var(--red)}
+
+/* ── 黑名單 ── */
+.blacklist-item{
+  display:flex;align-items:center;gap:10px;
+  padding:12px;border-radius:14px;
+  background:var(--red-dim);border:1px solid var(--red-border);
+  margin-bottom:8px;
+}
+.bl-av{
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,59,59,.2);color:#ff9a9a;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:700;flex-shrink:0;
+}
+.bl-info{flex:1}
+.bl-name{font-size:14px;font-weight:600;color:#ff9a9a}
+.bl-reason{font-size:12px;color:var(--muted);margin-top:2px}
+.bl-date{font-size:11px;color:var(--muted);margin-top:2px}
+.report-btn{
+  width:100%;padding:13px;border-radius:14px;
+  border:1px solid var(--red-border);background:var(--red-dim);
+  color:#ff9a9a;font-size:14px;font-weight:600;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;transition:.15s;
+  margin-top:6px;
+}
+.report-btn:hover{background:rgba(255,59,59,.2)}
+
+/* SOS 觸發動畫 */
+.sos-overlay{
+  position:fixed;inset:0;background:rgba(255,59,59,.95);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:999;text-align:center;padding:40px;
+}
+.sos-overlay.show{display:flex}
+.sos-count{font-size:80px;font-weight:900;color:white;line-height:1}
+.sos-overlay-title{font-size:24px;font-weight:900;color:white;margin:16px 0 8px}
+.sos-overlay-sub{font-size:15px;color:rgba(255,255,255,.8);line-height:1.7}
+.cancel-sos{
+  margin-top:32px;padding:14px 40px;border-radius:999px;
+  border:2px solid white;background:transparent;
+  color:white;font-size:16px;font-weight:700;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="back-btn">←</div>
+  <div>
+    <h1>安全機制</h1>
+    <p>你的安全是平台最高優先</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- SOS 大按鈕 -->
+  <div class="sos-hero">
+    <div class="sos-title">🚨 緊急求助</div>
+    <div class="sos-desc">遇到危險請長按 SOS 按鈕<br>將立即通知緊急聯絡人並回報位置</div>
+    <button class="sos-btn" id="sos-btn" onmousedown="startSOS()" onmouseup="cancelSOS()" ontouchstart="startSOS()" ontouchend="cancelSOS()">
+      <div class="sos-pulse"></div>
+      <div class="sos-btn-text">SOS</div>
+      <div class="sos-btn-sub">長按 3 秒觸發</div>
+    </button>
+    <div class="sos-actions" style="margin-top:24px">
+      <button class="sos-quick" onclick="callPolice()">📞 撥打 110</button>
+      <button class="sos-quick" onclick="callAmbulance()">🚑 撥打 119</button>
+      <button class="sos-quick" onclick="notifyContacts()">👥 通知聯絡人</button>
+    </div>
+  </div>
+
+  <!-- 行程安全狀態 -->
+  <div class="card">
+    <div class="card-title">🛡 行程安全狀態</div>
+
+    <div class="status-row">
+      <div class="status-left">
+        <div class="status-icon icon-green">📍</div>
+        <div class="status-info">
+          <div class="status-name">即時位置分享</div>
+          <div class="status-sub">分享給 2 位緊急聯絡人</div>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" checked onchange="toggleFeature(this,'位置分享')">
+        <span class="sw"></span>
+      </label>
+    </div>
+
+    <div class="status-row">
+      <div class="status-left">
+        <div class="status-icon icon-green">✅</div>
+        <div class="status-info">
+          <div class="status-name">行程打卡提醒</div>
+          <div class="status-sub">每 30 分鐘確認安全</div>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" checked onchange="toggleFeature(this,'行程打卡')">
+        <span class="sw"></span>
+      </label>
+    </div>
+
+    <div class="status-row">
+      <div class="status-left">
+        <div class="status-icon icon-green">🔔</div>
+        <div class="status-info">
+          <div class="status-name">逾時自動警報</div>
+          <div class="status-sub">超時未打卡自動通知聯絡人</div>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" checked onchange="toggleFeature(this,'逾時警報')">
+        <span class="sw"></span>
+      </label>
+    </div>
+
+    <div class="status-row">
+      <div class="status-left">
+        <div class="status-icon icon-amber">🎙</div>
+        <div class="status-info">
+          <div class="status-name">靜默錄音</div>
+          <div class="status-sub">SOS 觸發後自動錄音存證</div>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleFeature(this,'靜默錄音')">
+        <span class="sw"></span>
+      </label>
+    </div>
+
+  </div>
+
+  <!-- 緊急聯絡人 -->
+  <div class="card">
+    <div class="card-title">👥 緊急聯絡人</div>
+
+    <div class="contact-card">
+      <div class="contact-av" style="background:linear-gradient(135deg,#60a5fa,#93c5fd);color:#1e3a8a">媽</div>
+      <div class="contact-info">
+        <div class="contact-name">媽媽</div>
+        <div class="contact-rel">家人・主要聯絡人</div>
+        <div class="contact-phone">0912-345-678</div>
+      </div>
+      <div class="contact-actions">
+        <div class="icon-action" title="撥打">📞</div>
+        <div class="icon-action" title="編輯">✏️</div>
+      </div>
+    </div>
+
+    <div class="contact-card">
+      <div class="contact-av" style="background:linear-gradient(135deg,#34d399,#6ee7b7);color:#065f46">友</div>
+      <div class="contact-info">
+        <div class="contact-name">好友 Lisa</div>
+        <div class="contact-rel">朋友・備用聯絡人</div>
+        <div class="contact-phone">0956-789-012</div>
+      </div>
+      <div class="contact-actions">
+        <div class="icon-action" title="撥打">📞</div>
+        <div class="icon-action" title="編輯">✏️</div>
+      </div>
+    </div>
+
+    <button class="add-contact" onclick="addContact()">＋ 新增緊急聯絡人</button>
+  </div>
+
+  <!-- 即時位置分享 -->
+  <div class="card">
+    <div class="card-title">📍 即時位置分享</div>
+    <div class="map-preview">
+      <div class="location-dot"></div>
+      <div class="map-placeholder">
+        <div class="map-icon">🗺</div>
+        <p>信義區・台北 101 附近<br><span style="font-size:11px;color:#555">最後更新：剛剛</span></p>
+      </div>
+    </div>
+    <div class="share-options">
+      <button class="share-btn active-btn" onclick="toggleShareBtn(this)">✓ 緊急聯絡人</button>
+      <button class="share-btn" onclick="toggleShareBtn(this)">平台客服</button>
+      <button class="share-btn" onclick="copyLocation()">複製位置連結</button>
+      <button class="share-btn" onclick="stopShare()">停止分享</button>
+    </div>
+  </div>
+
+  <!-- 行程打卡 -->
+  <div class="card">
+    <div class="card-title">⏱ 行程打卡</div>
+    <div class="checkin-list">
+
+      <div class="checkin-item">
+        <div class="checkin-dot dot-done">✓</div>
+        <div class="checkin-info">
+          <div class="checkin-name">出發打卡</div>
+          <div class="checkin-time">20:30 ・ 已完成</div>
+        </div>
+      </div>
+
+      <div class="checkin-item">
+        <div class="checkin-dot dot-done">✓</div>
+        <div class="checkin-info">
+          <div class="checkin-name">抵達打卡</div>
+          <div class="checkin-time">21:02 ・ 信義區 Indulge</div>
+        </div>
+      </div>
+
+      <div class="checkin-item">
+        <div class="checkin-dot dot-now">!</div>
+        <div class="checkin-info">
+          <div class="checkin-name">中途安全確認</div>
+          <div class="checkin-time" style="color:var(--amber)">21:30 ・ 請在 5 分鐘內打卡</div>
+        </div>
+        <button class="checkin-action" onclick="doCheckin(this)">我安全 ✓</button>
+      </div>
+
+      <div class="checkin-item">
+        <div class="checkin-dot dot-todo">—</div>
+        <div class="checkin-info">
+          <div class="checkin-name">結束打卡</div>
+          <div class="checkin-time">預計 22:30</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- AI 風險評分 -->
+  <div class="card">
+    <div class="card-title">🤖 AI 風險評分</div>
+    <div class="risk-meter">
+      <div class="risk-score">92</div>
+      <div class="risk-info">
+        <div class="risk-label">低風險・安全</div>
+        <div class="risk-sub">本次行程風險評估正常</div>
+      </div>
+    </div>
+    <div class="risk-items">
+      <div class="risk-item"><div class="ri-dot ri-ok"></div>客人已完成實名驗證</div>
+      <div class="risk-item"><div class="ri-dot ri-ok"></div>客人評分 4.8★（28 則）</div>
+      <div class="risk-item"><div class="ri-dot ri-ok"></div>訂金已繳交，交易有保障</div>
+      <div class="risk-item"><div class="ri-dot ri-ok"></div>公共場所・光線充足</div>
+      <div class="risk-item"><div class="ri-dot ri-warn"></div>初次配對（建議公開場合）</div>
+    </div>
+  </div>
+
+  <!-- 黑名單 -->
+  <div class="card">
+    <div class="card-title">🚫 黑名單紀錄</div>
+    <div class="blacklist-item">
+      <div class="bl-av">X</div>
+      <div class="bl-info">
+        <div class="bl-name">用戶 #4821（已封鎖）</div>
+        <div class="bl-reason">原因：言語騷擾、要求越界</div>
+        <div class="bl-date">封鎖日期：2026/05/10</div>
+      </div>
+    </div>
+    <button class="report-btn" onclick="reportUser()">⚠️ 舉報新用戶</button>
+  </div>
+
+</div>
+
+<!-- SOS 觸發全螢幕 -->
+<div class="sos-overlay" id="sos-overlay">
+  <div class="sos-count" id="sos-count">3</div>
+  <div class="sos-overlay-title">SOS 即將送出</div>
+  <div class="sos-overlay-sub">
+    正在通知緊急聯絡人<br>
+    並回報你的即時位置<br><br>
+    <strong>位置：信義區・台北 101 附近</strong>
+  </div>
+  <button class="cancel-sos" onclick="cancelSOSOverlay()">取消</button>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#1D9E75;color:white;padding:12px 24px;border-radius:14px;
+  font-size:14px;font-weight:700;z-index:998;
+  transition:.35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;
+  box-shadow:0 4px 20px rgba(29,158,117,.4);
+">✅ 已送出</div>
+
+<script>
+let sosTimer=null;
+let countTimer=null;
+let sosCount=3;
+
+function startSOS(){
+  document.getElementById('sos-btn').style.transform='scale(.95)';
+  sosTimer=setTimeout(()=>{
+    triggerSOSOverlay();
+  },3000);
+}
+function cancelSOS(){
+  document.getElementById('sos-btn').style.transform='';
+  clearTimeout(sosTimer);
+}
+
+function triggerSOSOverlay(){
+  const overlay=document.getElementById('sos-overlay');
+  overlay.classList.add('show');
+  sosCount=3;
+  document.getElementById('sos-count').textContent=sosCount;
+  countTimer=setInterval(()=>{
+    sosCount--;
+    document.getElementById('sos-count').textContent=sosCount;
+    if(sosCount<=0){
+      clearInterval(countTimer);
+      overlay.classList.remove('show');
+      showToast('🚨 SOS 已送出！緊急聯絡人已通知。');
+    }
+  },1000);
+}
+function cancelSOSOverlay(){
+  clearInterval(countTimer);
+  document.getElementById('sos-overlay').classList.remove('show');
+  showToast('SOS 已取消');
+}
+
+function callPolice(){
+  showToast('📞 撥打 110 警察局');
+}
+function callAmbulance(){
+  showToast('🚑 撥打 119 救護車');
+}
+function notifyContacts(){
+  showToast('👥 已通知所有緊急聯絡人');
+}
+
+function toggleFeature(el, name){
+  showToast((el.checked?'✅ 已開啟 ':'⭕ 已關閉 ')+name);
+}
+
+function addContact(){
+  showToast('➕ 請填寫新聯絡人資料');
+}
+
+function toggleShareBtn(btn){
+  btn.classList.toggle('active-btn');
+  showToast(btn.classList.contains('active-btn')?'✅ 已開啟分享':'⭕ 已停止分享');
+}
+function copyLocation(){
+  showToast('📋 位置連結已複製');
+}
+function stopShare(){
+  showToast('⭕ 已停止所有位置分享');
+}
+
+function doCheckin(btn){
+  const item=btn.closest('.checkin-item');
+  item.querySelector('.checkin-dot').className='checkin-dot dot-done';
+  item.querySelector('.checkin-dot').textContent='✓';
+  item.querySelector('.checkin-time').textContent='21:31 ・ 已確認安全';
+  item.querySelector('.checkin-time').style.color='var(--green)';
+  btn.remove();
+  showToast('✅ 安全確認完成！');
+}
+
+function reportUser(){
+  showToast('⚠️ 舉報已送出，平台將在24小時內處理');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{
+    t.style.transform='translateX(-50%) translateY(80px)';
+  },2800);
+}
+</script>
+</body>
+</html>

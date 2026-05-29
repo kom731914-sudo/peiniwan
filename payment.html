@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>金流系統｜陪你玩</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#ff4fa3;
+  --pink-dim:rgba(255,79,163,.12);
+  --pink-border:rgba(255,79,163,.28);
+  --green:#47ff92;
+  --green-dim:rgba(71,255,146,.1);
+  --green-border:rgba(71,255,146,.25);
+  --amber:#fbbf24;
+  --amber-dim:rgba(251,191,36,.1);
+  --amber-border:rgba(251,191,36,.25);
+  --red:#ff3b3b;
+  --red-dim:rgba(255,59,59,.1);
+  --red-border:rgba(255,59,59,.25);
+  --blue:#60a5fa;
+  --blue-dim:rgba(96,165,250,.1);
+  --blue-border:rgba(96,165,250,.25);
+  --bg:#070710;
+  --surface:rgba(255,255,255,.06);
+  --surface2:rgba(255,255,255,.03);
+  --border:rgba(255,255,255,.09);
+  --text:#f0f0f0;
+  --muted:#888;
+  --gold:#fbbf24;
+}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:60px}
+
+.topbar{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;
+  background:rgba(7,7,16,.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:50;
+}
+.topbar h1{font-size:18px;font-weight:900}
+.topbar p{font-size:12px;color:var(--muted);margin-top:2px}
+.back-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;flex-shrink:0;
+}
+
+/* 分頁 */
+.tabs{
+  display:flex;border-bottom:1px solid var(--border);
+  background:rgba(7,7,16,.8);
+  position:sticky;top:65px;z-index:40;
+}
+.tab{
+  flex:1;padding:13px 6px;text-align:center;font-size:13px;font-weight:500;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.2s;
+}
+.tab.active{color:var(--pink);border-bottom-color:var(--pink)}
+
+.page{display:none;padding:16px}
+.page.active{display:block}
+
+/* 共用元件 */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:18px;margin-bottom:14px;
+}
+.card-title{
+  font-size:14px;font-weight:700;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.row{display:flex;align-items:center;justify-content:space-between}
+.label{font-size:14px;color:var(--text)}
+.sublabel{font-size:12px;color:var(--muted);margin-top:2px}
+.divider{height:1px;background:var(--border);margin:12px 0}
+
+/* 錢包餘額大卡 */
+.wallet-hero{
+  background:linear-gradient(135deg,rgba(255,79,163,.18),rgba(255,79,163,.06));
+  border:1px solid var(--pink-border);
+  border-radius:24px;padding:24px 20px;margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.wallet-hero::before{
+  content:'';position:absolute;
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,79,163,.12),transparent 70%);
+  top:-60px;right:-40px;pointer-events:none;
+}
+.wallet-label{font-size:13px;color:#ff9ad0;margin-bottom:6px}
+.wallet-amount{font-size:48px;font-weight:900;line-height:1;margin-bottom:4px}
+.wallet-sub{font-size:13px;color:var(--muted)}
+.wallet-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.w-btn{
+  padding:13px;border-radius:14px;border:1px solid var(--pink-border);
+  background:var(--pink-dim);color:#ff9ad0;
+  font-size:14px;font-weight:600;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;text-align:center;transition:.15s;
+}
+.w-btn:hover{background:rgba(255,79,163,.2)}
+.w-btn.primary{background:var(--pink);color:white;border-color:var(--pink);
+  box-shadow:0 0 16px rgba(255,79,163,.3)}
+
+/* 統計小卡 */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:16px;padding:14px;
+}
+.stat-num{font-size:22px;font-weight:900}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:4px}
+.stat-change{font-size:12px;margin-top:4px}
+.up{color:var(--green)}.down{color:var(--red)}
+
+/* 訂單流程卡 */
+.order-flow{
+  border:1px solid var(--border);border-radius:18px;
+  overflow:hidden;margin-bottom:14px;
+}
+.order-flow-header{
+  padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+}
+.order-id{font-size:13px;color:var(--muted)}
+.order-status{
+  font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;
+}
+.s-pending{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
+.s-active{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-border)}
+.s-done{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.s-refund{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
+
+.order-flow-body{padding:14px 16px}
+.of-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.of-row:last-child{margin-bottom:0}
+.of-label{font-size:13px;color:var(--muted)}
+.of-value{font-size:14px;font-weight:500}
+
+.flow-steps{
+  display:flex;align-items:center;gap:0;
+  padding:12px 16px;border-top:1px solid var(--border);
+  background:var(--surface2);overflow-x:auto;
+}
+.flow-steps::-webkit-scrollbar{display:none}
+.fs-step{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  flex:1;min-width:60px;
+}
+.fs-dot{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+}
+.fs-done{background:var(--green-dim);border:1px solid var(--green-border);color:var(--green)}
+.fs-now{background:var(--pink-dim);border:2px solid var(--pink);color:var(--pink)}
+.fs-todo{background:var(--surface2);border:1px solid var(--border);color:var(--muted)}
+.fs-label{font-size:10px;color:var(--muted);text-align:center;line-height:1.3}
+.fs-line{flex:1;height:1px;background:var(--border);min-width:12px;max-width:24px;margin-bottom:16px}
+.fs-line.done-line{background:var(--green)}
+
+.order-action{
+  width:100%;padding:12px;border-radius:12px;border:none;
+  background:var(--pink);color:white;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+  margin-top:12px;transition:.2s;
+}
+.order-action:active{opacity:.85;transform:scale(.98)}
+.order-action.secondary{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+
+/* 付款方式 */
+.pay-option{
+  display:flex;align-items:center;gap:12px;
+  padding:13px;border-radius:14px;border:1px solid var(--border);
+  background:var(--surface2);margin-bottom:8px;cursor:pointer;transition:.15s;
+}
+.pay-option.selected{border-color:var(--pink);background:var(--pink-dim)}
+.pay-icon{
+  width:42px;height:42px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:rgba(255,255,255,.06);flex-shrink:0;
+}
+.pay-name{font-size:14px;font-weight:600}
+.pay-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.pay-check{margin-left:auto;font-size:18px}
+
+/* 交易記錄 */
+.tx-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.tx-item:last-child{border-bottom:none}
+.tx-icon{
+  width:40px;height:40px;border-radius:12px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+.tx-info{flex:1;min-width:0}
+.tx-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-date{font-size:12px;color:var(--muted);margin-top:2px}
+.tx-amount{font-size:15px;font-weight:700;flex-shrink:0}
+.amount-in{color:var(--green)}
+.amount-out{color:var(--text)}
+.amount-hold{color:var(--amber)}
+
+/* 提領表單 */
+.form-group{margin-bottom:14px}
+.form-label{font-size:13px;color:var(--muted);margin-bottom:7px;display:block}
+.form-input{
+  width:100%;padding:12px 14px;border-radius:13px;
+  border:1px solid var(--border);background:var(--surface);
+  color:var(--text);font-size:15px;font-family:'Noto Sans TC',sans-serif;
+  transition:.2s;
+}
+.form-input:focus{outline:none;border-color:var(--pink)}
+.form-input::placeholder{color:var(--muted)}
+select.form-input{cursor:pointer}
+.form-note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6}
+.kyc-banner{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:13px;
+  background:var(--green-dim);border:1px solid var(--green-border);
+  margin-bottom:14px;
+}
+.kyc-banner .kyc-icon{font-size:20px}
+.kyc-text{font-size:13px;color:rgba(71,255,146,.9);line-height:1.5}
+.submit-btn{
+  width:100%;padding:15px;border-radius:16px;border:none;
+  background:var(--pink);color:white;font-size:16px;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+  box-shadow:0 0 20px rgba(255,79,163,.3);transition:.2s;
+}
+.submit-btn:active{transform:scale(.98);opacity:.9}
+
+/* 保護機制說明 */
+.protect-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.protect-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:14px;padding:13px;
+}
+.protect-icon{font-size:22px;margin-bottom:8px}
+.protect-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.protect-desc{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#1D9E75;color:white;padding:12px 24px;border-radius:14px;
+  font-size:14px;font-weight:700;z-index:999;
+  transition:.35s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;box-shadow:0 4px 20px rgba(29,158,117,.4);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Modal */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:200;backdrop-filter:blur(4px);
+}
+.modal-bg.show{display:flex}
+.modal{
+  width:100%;max-width:480px;
+  background:#0f0f1a;border-radius:24px 24px 0 0;
+  border:1px solid var(--border);padding:24px 20px 40px;
+}
+.modal-title{font-size:18px;font-weight:900;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.modal-close{float:right;cursor:pointer;font-size:20px;color:var(--muted)}
+.amount-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.amount-btn{
+  padding:12px;border-radius:12px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;
+  cursor:pointer;font-family:'Noto Sans TC',sans-serif;text-align:center;transition:.15s;
+}
+.amount-btn:hover,.amount-btn.on{border-color:var(--pink);background:var(--pink-dim);color:#ff9ad0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="back-btn">←</div>
+  <div>
+    <h1>金流系統</h1>
+    <p>訂金・付款・提領・保護</p>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('wallet')">錢包</div>
+  <div class="tab" onclick="switchTab('orders')">訂單</div>
+  <div class="tab" onclick="switchTab('withdraw')">提領</div>
+  <div class="tab" onclick="switchTab('history')">明細</div>
+</div>
+
+<!-- ── 錢包 ── -->
+<div class="page active" id="page-wallet">
+
+  <div class="wallet-hero">
+    <div class="wallet-label">平台錢包餘額</div>
+    <div class="wallet-amount" id="wallet-bal">$4,320</div>
+    <div class="wallet-sub">待入帳 $2,160（訂單完成後釋出）</div>
+    <div class="wallet-actions">
+      <button class="w-btn" onclick="openTopup()">➕ 儲值</button>
+      <button class="w-btn primary" onclick="openWithdraw()">💸 提領</button>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--green)">$18,720</div>
+      <div class="stat-lbl">本月收入</div>
+      <div class="stat-change up">↑ 23% 較上月</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">12</div>
+      <div class="stat-lbl">本月訂單</div>
+      <div class="stat-change up">↑ 4 較上月</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--amber)">$2,160</div>
+      <div class="stat-lbl">待釋出</div>
+      <div class="stat-change" style="color:var(--muted)">1 筆進行中</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--pink)">10%</div>
+      <div class="stat-lbl">平台抽成</div>
+      <div class="stat-change" style="color:var(--muted)">業界最低</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔒 資金保護機制</div>
+    <div class="protect-grid">
+      <div class="protect-card">
+        <div class="protect-icon">🏦</div>
+        <div class="protect-title">第三方託管</div>
+        <div class="protect-desc">訂金由平台代管，完成後自動釋出</div>
+      </div>
+      <div class="protect-card">
+        <div class="protect-icon">↩️</div>
+        <div class="protect-title">爭議退款</div>
+        <div class="protect-desc">客人爽約或違規，全額退回女生</div>
+      </div>
+      <div class="protect-card">
+        <div class="protect-icon">🛡</div>
+        <div class="protect-title">KYC 驗證</div>
+        <div class="protect-desc">金流實名認證，防詐騙保障</div>
+      </div>
+      <div class="protect-card">
+        <div class="protect-icon">⚡</div>
+        <div class="protect-title">快速入帳</div>
+        <div class="protect-desc">評價完成後 24 小時內到帳</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 付款方式 -->
+  <div class="card">
+    <div class="card-title">💳 付款方式設定</div>
+    <div class="pay-option selected" onclick="selectPay(this)">
+      <div class="pay-icon">💳</div>
+      <div>
+        <div class="pay-name">信用卡</div>
+        <div class="pay-sub">Visa **** 4521</div>
+      </div>
+      <div class="pay-check">✓</div>
+    </div>
+    <div class="pay-option" onclick="selectPay(this)">
+      <div class="pay-icon">📱</div>
+      <div>
+        <div class="pay-name">Line Pay</div>
+        <div class="pay-sub">已連結</div>
+      </div>
+      <div class="pay-check" style="opacity:0">✓</div>
+    </div>
+    <div class="pay-option" onclick="selectPay(this)">
+      <div class="pay-icon">🏧</div>
+      <div>
+        <div class="pay-name">ATM 轉帳</div>
+        <div class="pay-sub">玉山銀行 **** 8834</div>
+      </div>
+      <div class="pay-check" style="opacity:0">✓</div>
+    </div>
+    <div class="pay-option" onclick="selectPay(this)">
+      <div class="pay-icon">💰</div>
+      <div>
+        <div class="pay-name">街口支付</div>
+        <div class="pay-sub">點擊連結帳號</div>
+      </div>
+      <div class="pay-check" style="opacity:0">✓</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── 訂單 ── -->
+<div class="page" id="page-orders">
+
+  <!-- 進行中 -->
+  <div class="order-flow">
+    <div class="order-flow-header">
+      <div>
+        <div style="font-size:15px;font-weight:700">Amy × 客人 Chris</div>
+        <div class="order-id">訂單 #PYW-20260529-0042</div>
+      </div>
+      <div class="order-status s-active">進行中</div>
+    </div>
+    <div class="order-flow-body">
+      <div class="of-row">
+        <span class="of-label">服務類型</span>
+        <span class="of-value">酒吧聊天・3 小時</span>
+      </div>
+      <div class="of-row">
+        <span class="of-label">服務費用</span>
+        <span class="of-value">$3,600</span>
+      </div>
+      <div class="of-row">
+        <span class="of-label">訂金（30%）</span>
+        <span class="of-value" style="color:var(--green)">$1,080 已收</span>
+      </div>
+      <div class="of-row">
+        <span class="of-label">尾款</span>
+        <span class="of-value" style="color:var(--amber)">$2,520 待收</span>
+      </div>
+      <div class="divider"></div>
+      <div class="of-row">
+        <span class="of-label">平台抽成 10%</span>
+        <span class="of-value" style="color:var(--muted)">－$360</span>
+      </div>
+      <div class="of-row">
+        <span class="of-label" style="font-weight:700;color:var(--text)">你實拿</span>
+        <span class="of-value" style="color:var(--pink);font-size:18px;font-weight:900">$3,240</span>
+      </div>
+      <button class="order-action" onclick="completeOrder()">✅ 確認行程完成</button>
+      <button class="order-action secondary" style="margin-top:8px" onclick="disputeOrder()">⚠️ 申請爭議處理</button>
+    </div>
+    <div class="flow-steps">
+      <div class="fs-step">
+        <div class="fs-dot fs-done">✓</div>
+        <div class="fs-label">媒合<br>成功</div>
+      </div>
+      <div class="fs-line done-line"></div>
+      <div class="fs-step">
+        <div class="fs-dot fs-done">✓</div>
+        <div class="fs-label">訂金<br>繳交</div>
+      </div>
+      <div class="fs-line done-line"></div>
+      <div class="fs-step">
+        <div class="fs-dot fs-now">●</div>
+        <div class="fs-label">行程<br>進行</div>
+      </div>
+      <div class="fs-line"></div>
+      <div class="fs-step">
+        <div class="fs-dot fs-todo">4</div>
+        <div class="fs-label">尾款<br>收取</div>
+      </div>
+      <div class="fs-line"></div>
+      <div class="fs-step">
+        <div class="fs-dot fs-todo">5</div>
+        <div class="fs-label">評價<br>入帳</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 待確認訂金 -->
+  <div class="order-flow">
+    <div class="order-flow-header">
+      <div>
+        <div style="font-size:15px;font-weight:700">Amy × 客人 Jason</div>
+        <div class="order-id">訂單 #PYW-20260530-0051</div>
+      </div>
+      <div class="order-status s-pending">待訂金</div>
+    </div>
+    <div class="order-flow-body">
+      <div class="of-row">
+        <span class="of-label">服務類型</span>
+        <span class="of-value">商務陪同・2 小時</span>
+      </div>
+      <div class="of-row">
+        <span class="of-label">服務費用</span>
+        <span class="of-value">$3,600</span>
+      </div>
+      <div class="of-row">
+        <span class="of-label">訂金（30%）</span>
+        <span class="of-value" style="color:var(--amber)">$1,080 待繳</span>
+      </div>
+      <div class="of-row">
+        <span class="of-label">預約時間</span>
+        <span class="of-value">5/30 晚上 8 點</span>
+      </div>
+      <button class="order-action" style="background:var(--amber);box-shadow:0 0 16px rgba(251,191,36,.25)" onclick="showToast('⏳ 等待客人繳交訂金…')">等待訂金繳交中</button>
+      <button class="order-action secondary" style="margin-top:8px" onclick="cancelOrder()">取消此訂單</button>
+    </div>
+    <div class="flow-steps">
+      <div class="fs-step">
+        <div class="fs-dot fs-done">✓</div>
+        <div class="fs-label">媒合<br>成功</div>
+      </div>
+      <div class="fs-line done-line"></div>
+      <div class="fs-step">
+        <div class="fs-dot fs-now">!</div>
+        <div class="fs-label">訂金<br>待繳</div>
+      </div>
+      <div class="fs-line"></div>
+      <div class="fs-step">
+        <div class="fs-dot fs-todo">3</div>
+        <div class="fs-label">行程<br>進行</div>
+      </div>
+      <div class="fs-line"></div>
+      <div class="fs-step">
+        <div class="fs-dot fs-todo">4</div>
+        <div class="fs-label">尾款<br>收取</div>
+      </div>
+      <div class="fs-line"></div>
+      <div class="fs-step">
+        <div class="fs-dot fs-todo">5</div>
+        <div class="fs-label">評價<br>入帳</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 已完成 -->
+  <div class="order-flow">
+    <div class="order-flow-header">
+      <div>
+        <div style="font-size:15px;font-weight:700">Amy × 客人 Kevin</div>
+        <div class="order-id">訂單 #PYW-20260528-0038</div>
+      </div>
+      <div class="order-status s-done">已入帳</div>
+    </div>
+    <div class="order-flow-body">
+      <div class="of-row">
+        <span class="of-label">服務類型</span>
+        <span class="of-value">KTV 伴唱・2 小時</span>
+      </div>
+      <div class="of-row">
+        <span class="of-label">實收金額</span>
+        <span class="of-value" style="color:var(--green);font-weight:700">$2,160 已入帳 ✓</span>
+      </div>
+      <div class="of-row">
+        <span class="of-label">入帳時間</span>
+        <span class="of-value">5/29 上午 10:32</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── 提領 ── -->
+<div class="page" id="page-withdraw">
+
+  <div class="kyc-banner">
+    <div class="kyc-icon">✅</div>
+    <div class="kyc-text">KYC 實名驗證已完成・可正常提領</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💸 申請提領</div>
+
+    <div style="background:var(--surface2);border-radius:14px;padding:14px;margin-bottom:16px;text-align:center">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:4px">可提領餘額</div>
+      <div style="font-size:36px;font-weight:900;color:var(--pink)">$4,320</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">待釋出 $2,160 不可提領</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">提領金額</label>
+      <input class="form-input" type="number" id="w-amount" placeholder="輸入金額（最低 $500）" min="500" step="100">
+      <div class="form-note">最低提領 $500・單次上限 $50,000</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">提領方式</label>
+      <select class="form-input" id="w-method">
+        <option>銀行轉帳（1–2 個工作天）</option>
+        <option>街口支付（即時到帳）</option>
+        <option>Line Pay（即時到帳）</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">銀行帳號</label>
+      <input class="form-input" type="text" placeholder="玉山銀行 ****-****-****-8834" readonly value="玉山銀行 **** 8834">
+      <div class="form-note">如需更改帳號，請前往帳戶設定進行 KYC 重新驗證</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="of-row" style="margin-bottom:8px">
+      <span style="font-size:13px;color:var(--muted)">手續費</span>
+      <span style="font-size:14px">免費</span>
+    </div>
+    <div class="of-row" style="margin-bottom:16px">
+      <span style="font-size:13px;color:var(--muted)">預計到帳</span>
+      <span style="font-size:14px;color:var(--green)">1–2 個工作天</span>
+    </div>
+
+    <button class="submit-btn" onclick="submitWithdraw()">申請提領</button>
+  </div>
+
+</div>
+
+<!-- ── 明細 ── -->
+<div class="page" id="page-history">
+
+  <div class="card" style="padding:14px 18px">
+    <div class="card-title" style="margin-bottom:10px">本月總覽</div>
+    <div class="row" style="margin-bottom:6px">
+      <span style="font-size:13px;color:var(--muted)">總收入</span>
+      <span style="font-size:16px;font-weight:700;color:var(--green)">+$18,720</span>
+    </div>
+    <div class="row" style="margin-bottom:6px">
+      <span style="font-size:13px;color:var(--muted)">平台抽成</span>
+      <span style="font-size:14px;color:var(--muted)">－$2,080</span>
+    </div>
+    <div class="row">
+      <span style="font-size:13px;color:var(--muted)">已提領</span>
+      <span style="font-size:14px">$12,240</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">交易明細</div>
+
+    <div class="tx-item">
+      <div class="tx-icon" style="background:var(--green-dim)">💰</div>
+      <div class="tx-info">
+        <div class="tx-name">訂單完成入帳・Chris</div>
+        <div class="tx-date">5/29 10:32・訂單 #0042</div>
+      </div>
+      <div class="tx-amount amount-in">+$3,240</div>
+    </div>
+
+    <div class="tx-item">
+      <div class="tx-icon" style="background:rgba(96,165,250,.1)">🏦</div>
+      <div class="tx-info">
+        <div class="tx-name">提領至玉山銀行</div>
+        <div class="tx-date">5/28 14:20・已到帳</div>
+      </div>
+      <div class="tx-amount">－$3,000</div>
+    </div>
+
+    <div class="tx-item">
+      <div class="tx-icon" style="background:var(--green-dim)">💰</div>
+      <div class="tx-info">
+        <div class="tx-name">訂單完成入帳・Kevin</div>
+        <div class="tx-date">5/28 09:15・訂單 #0038</div>
+      </div>
+      <div class="tx-amount amount-in">+$2,160</div>
+    </div>
+
+    <div class="tx-item">
+      <div class="tx-icon" style="background:var(--amber-dim)">⏳</div>
+      <div class="tx-info">
+        <div class="tx-name">訂金收取・Jason（待釋出）</div>
+        <div class="tx-date">5/27 20:05・行程 5/30</div>
+      </div>
+      <div class="tx-amount amount-hold">$1,080</div>
+    </div>
+
+    <div class="tx-item">
+      <div class="tx-icon" style="background:var(--green-dim)">💰</div>
+      <div class="tx-info">
+        <div class="tx-name">訂單完成入帳・Mina 方</div>
+        <div class="tx-date">5/26 22:40・訂單 #0031</div>
+      </div>
+      <div class="tx-amount amount-in">+$2,160</div>
+    </div>
+
+    <div class="tx-item">
+      <div class="tx-icon" style="background:var(--red-dim)">↩️</div>
+      <div class="tx-info">
+        <div class="tx-name">爭議退款・客人爽約</div>
+        <div class="tx-date">5/24 11:30・訂單 #0029</div>
+      </div>
+      <div class="tx-amount amount-in">+$600</div>
+    </div>
+
+    <div class="tx-item">
+      <div class="tx-icon" style="background:rgba(96,165,250,.1)">🏦</div>
+      <div class="tx-info">
+        <div class="tx-name">提領至玉山銀行</div>
+        <div class="tx-date">5/22 09:00・已到帳</div>
+      </div>
+      <div class="tx-amount">－$6,000</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 儲值 Modal -->
+<div class="modal-bg" id="modal-topup">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal('modal-topup')">✕</div>
+    <div class="modal-title">儲值</div>
+    <div class="modal-sub">選擇金額或自行輸入</div>
+    <div class="amount-btns">
+      <div class="amount-btn" onclick="setAmount(500,this)">$500</div>
+      <div class="amount-btn" onclick="setAmount(1000,this)">$1,000</div>
+      <div class="amount-btn" onclick="setAmount(2000,this)">$2,000</div>
+      <div class="amount-btn" onclick="setAmount(3000,this)">$3,000</div>
+      <div class="amount-btn" onclick="setAmount(5000,this)">$5,000</div>
+      <div class="amount-btn" onclick="setAmount(10000,this)">$10,000</div>
+    </div>
+    <input class="form-input" id="topup-amount" type="number" placeholder="自訂金額" style="margin-bottom:14px">
+    <button class="submit-btn" onclick="confirmTopup()">確認儲值</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',['wallet','orders','withdraw','history'][i]===tab);
+  });
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+}
+
+function selectPay(el){
+  document.querySelectorAll('.pay-option').forEach(o=>{
+    o.classList.remove('selected');
+    o.querySelector('.pay-check').style.opacity='0';
+  });
+  el.classList.add('selected');
+  el.querySelector('.pay-check').style.opacity='1';
+  showToast('✅ 已選擇 '+el.querySelector('.pay-name').textContent);
+}
+
+function completeOrder(){
+  showToast('✅ 行程確認完成！款項將於 24 小時內入帳');
+}
+function disputeOrder(){
+  showToast('⚠️ 爭議申請已送出，客服將在 2 小時內處理');
+}
+function cancelOrder(){
+  if(confirm('確定要取消此訂單？\n訂金將依規則退還。')){
+    showToast('訂單已取消');
+  }
+}
+
+function openTopup(){
+  document.getElementById('modal-topup').classList.add('show');
+}
+function openWithdraw(){
+  switchTab('withdraw');
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('show');
+}
+function setAmount(n, el){
+  document.querySelectorAll('.amount-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('topup-amount').value=n;
+}
+function confirmTopup(){
+  const amt=parseInt(document.getElementById('topup-amount').value)||0;
+  if(amt<100){showToast('⚠️ 最低儲值金額 $100');return}
+  closeModal('modal-topup');
+  showToast('✅ 已儲值 $'+amt.toLocaleString()+'，處理中…');
+}
+
+function submitWithdraw(){
+  const amt=parseInt(document.getElementById('w-amount').value)||0;
+  if(amt<500){showToast('⚠️ 最低提領金額 $500');return}
+  if(amt>4320){showToast('⚠️ 超過可提領餘額');return}
+  showToast('✅ 提領申請送出！$'+amt.toLocaleString()+' 將於 1–2 個工作天到帳');
+  document.getElementById('w-amount').value='';
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>
